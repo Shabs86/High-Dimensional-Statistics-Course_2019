@@ -1,0 +1,302 @@
+---
+title: "HDS Exercise set 1"
+author: "Shabbeer Hassan"
+output:
+  pdf_document: default
+  html_document: default
+theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(29)
+```
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 30px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 22px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 20px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+h4 { /* Header 4 */
+  font-size: 14px;
+  font-family: "Times New Roman", Times, serif;
+  color: Black;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+### Problem 1 - Solutions
+
+(a) 
+```{r echo=T}
+library(MASS)
+str(Boston)
+anyNA(Boston)
+```
+
+#### Boston dataset contains n=506 and p=13, without any missing values. The dataset contains all numerical variables and no non-numerical ones
+
+(b)
+```{r echo=T}
+library(corrplot)
+corr.matrix = cor(Boston)
+corrplot.mixed(corr.matrix, order = "hclust")
+```
+
+#### Based on the corrplot above, we see that two variables - Index of accessibility to raidal highways ("rad") & Full-value property-tax rate per $10000 (tax) are highly correlated (r > 0.9).
+
+#### For variable "medv", based on the correlation values alone we see that variables such as - Average number of rooms per dwelling ("rm") & Lower status of the population ("lstat") could be potential predictors (r>0.7, either direction)
+
+
+(c)
+```{r echo=T}
+library(tidyverse)
+library(broom)
+
+
+
+## Function to extract data out of linear regression model, and return important values ( adj R-squares) at the top of a ggplot graph with the regression line
+
+ggplotRegression <- function (fit) {
+
+require(ggplot2)
+
+ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red") +
+  labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5)))
+}
+
+
+## Use a for loop to run through the columns of Boston matrix wrt "medv" variable
+
+library(ggplot2)
+library(gridExtra)
+
+plotlist = list()
+Boston_lm <- Boston[,-4] # Remoce chas
+
+cols_pred <- ncol(Boston_lm) - 1
+cols_name <- colnames(Boston_lm[, -13])
+
+for (i in 1:cols_pred) {
+  predictor = Boston[,i]
+  p <- ggplotRegression(lm(medv ~ predictor, data = Boston))
+  pname <- paste0("Medv_vs_", cols_name[i])
+  ggsave(paste0(pname,".png"),p)
+  plotlist[[i]] = p
+}
+
+## USe gridExtra to generate different figures from plotlist
+p <- grid.arrange(grobs = plotlist, ncol = 4)
+ggsave("LM_plot.png",p)
+```
+
+
+(d)
+```{r echo=T}
+lm.fit = lm(medv ~ lstat + rm, data = Boston)
+summary(lm.fit)
+
+confint(lm.fit) # getting CI
+```
+
+#### The predictors are related to median house value in a significant fashion. To start off with this model explains 64% of the variance in the medain house values. With "lstat", it is negatively associated with an estimate of -0.64  whereas "rm" is positively associated with 5.09 estimate. What this means simply is, If all predictors remain constant, then 1 unit change in "lstat" reduves Median house values by -0.64 and for "rm", a unit change brings an increase of Median values by 5.09
+
+#### Predict function 
+```{r echo=T}
+predict(lm.fit, data.frame(lstat = c(7, 17), rm = c(5, 5)),interval="confidence")
+```
+
+
+### Problem 2 - Solutions
+
+Let's continue with the linear model `medv ~ lstat + rm` in `Boston` dataset.
+
+(a) 
+```{r echo=T}
+par(mfrow=c(2,2)) # Change the panel layout to 2 x 2
+plot(lm.fit)
+```
+
+#### The diagnostic plots suggest that the influence of outliers is very strongly present here.One observation is far beyond Cook’s distance lines, while the other residuals appear clustered on the left because the last plot is scaled to show larger area than the Scale-Location plot. The plot identified the influential observation as #366
+
+(b) 
+```{r echo=T}
+lm.quad = lm(medv ~ rm + I(rm ^ 2) + lstat + I(lstat ^ 2), data = Boston)
+summary(lm.quad)
+
+par(mfrow=c(2,2))
+plot(lm.quad)
+
+### Try fitting model after removing obs. 366
+lm.quad.new = lm(medv ~ rm + I(rm ^ 2) + lstat + I(lstat ^ 2), data = Boston[-366,])
+summary(lm.quad.new)
+
+par(mfrow=c(2,2))
+plot(lm.quad.new)
+```
+
+#### The added quadratic terms improve the variance explained of Median house values from 64% to 75% and all of them being highly significant.
+
+#### Observation from row 366 in Boston dataset could be an influential variable, as its removal made the R2 values jum,p to 78% and the residence plot being linear with x-axis at 0 value of y-axis.
+
+(c) 
+```{r echo=T}
+### Figure out the role of inlfuential observations
+
+# "lstat"
+lm.lstat = lm(medv ~ lstat + I(lstat ^ 2), data = Boston)
+summary(lm.lstat)
+
+par(mfrow=c(2,2))
+plot(lm.lstat)
+
+# "rm" 
+lm.rm = lm(medv ~ rm + I(rm ^ 2), data = Boston)
+summary(lm.rm)
+
+par(mfrow=c(2,2))
+plot(lm.rm)
+```
+
+
+#### The two models above show differing results with regards to Cook's distance. Obnservation 366, whichwas the iunfliential one in the multiple regression model is NOT so anymore when regression is done with only "rm" variable as a predictor
+
+
+
+### Problem 3 - SOlution
+
+```{r echo=T}
+## Generate a set of p=100, P-values using command
+pval = c(runif(80), rbeta(20, 1, 100))
+
+## Step by step
+sort_pval <- sort(pval)
+manual_BH <- 0.5 * (1:length(sort_pval))/length(sort_pval)
+
+
+## Use function
+func_BH <- p.adjust(pval, method="hochberg")
+```
+
+
+
+
+### Problem 4 - SOlutions
+
+(a)
+```{r echo=T}
+n = 1000 
+p = 10000 
+m = 100 
+b = sqrt( 0.01 / (1 - 0.01) ) #This means each predictor explains 1%
+#indicator for non-null effects 
+eff = c(rep(T, m), rep(F, p-m))
+#Prop_adjust <- data.frame(matrix(nrow = 1000, ncol = 1))
+#Prop_BF <- data.frame(matrix(nrow = 1000, ncol = 1))
+#Prop_BH <- data.frame(matrix(nrow = 1000, ncol = 1))
+
+#for (i in 1:1000) {    
+
+#pval[i] = pchisq( rnorm(p, b*sqrt(n)*as.numeric(eff), 1)^2, df = 1, lower = F) 
+
+# Non-adjusted p-values
+#Prop_adjust[i,] <- length(pval[i][(pval[i]<0.05)])/n
+
+# Bonferroni correction
+## Get Bonferroni corrected P-value
+#BF_pval = 0.05/p 
+#Prop_BF[i,] <- length(pval[i][(pval[i]<BF_pval)])/n
+
+# Benjamini and Hochberg FDR at alpha=0.05
+#BH_pval = p.adjust(pval[i], "BH")
+#Prop_BH[i,] <- length(pval[i][(pval[i]<BH_pval)])/n
+
+#  }
+
+
+## Histograms
+#hist(Prop_adjust)
+```
+
+**Part (b).**
+
+
+#### Problem 5.
+
+When we have a large number $p$ of predictors $x_j$ collected
+to $n\times p$ matrix $\pmb{X}$ that we want
+to use to predict outcome $y$, the first step is often to 
+fit $p$ simple linear models of type $y \sim \mu_{j} + x_j\beta_{j}$.
+In lecture 1 we did this by applying `lm()` on each column of 
+$\pmb{X}$ separately:
+```{r, eval=F}
+#by mean-centering y and each x, we can ignore intercept terms (since they are 0, see Lecture 0)
+X = as.matrix( scale(X, scale = F) ) #mean-centers columns of X to have mean 0 
+y = as.vector( scale(y, scale = F) )
+#apply lm to each column of X separately and without intercept (see Lecture 0.)
+lm.res = apply(X, 2 , function(x) summary(lm(y ~ -1 + x))$coeff[1,])
+```
+
+In this exercise, we do the same much more efficiently by using direct 
+matrix-vector operations.
+
+**Part (a).**
+
+We know that the formula for the regression coefficient for mean-centered model is
+$$\widehat{\beta}_j =\frac{\pmb x_j^T \pmb y}{\pmb x_j^T \pmb x_j}.$$
+How can you efficiently compute the vector $\widehat{\pmb{\beta}} = (\widehat{\beta_1},\ldots,\widehat{\beta_p})^T$ using only matrix-matrix
+and matrix-vector operations in R? (No for-loops, no apply-functions.)
+
+Demonstrate your method on a data set generated as
+```{r}
+n = 100
+p = 1000
+X = matrix(rnorm(n*p, 0, 1), nrow = n)
+y = rnorm(n)
+```
+Compare your $\beta$-estimates to the ones given by 
+`apply()` as above to see that they agree (up to precision 1e-16).
+
+**Part (b).**
+
+Standard errors from the mean-centered simple linear model are of the form
+$$s_j = \sqrt{\frac{\sigma_j^2}{\pmb x_j^T \pmb x_j}},$$
+where $\sigma_j^2$ is the error variance of the simple linear regression
+with $x_j$ as the predictor.
+How can you estimate these efficiently for all $j$ 
+using $\pmb{X}$, $\pmb{y}$ and $\widehat{\pmb{\beta}}$?
+Again, verify your results by comparing to the standard errors given by 
+`apply()` function.
+
+(Extra: Once everything works, 
+you can test by increasing $p$ from 1,000 to 30,000 that the matrix
+operations still produce results instantaneously but with `apply()` function
+it starts to take annoyingly long.)
