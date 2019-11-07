@@ -51,7 +51,7 @@ pre { /* Code block - determines code spacing between lines */
 </style>
 
 
-### Problem 3 - SOlution
+### Problem 3 - Solution
 
 ```{r echo=T}
 ## Generate a set of p=100, P-values using command
