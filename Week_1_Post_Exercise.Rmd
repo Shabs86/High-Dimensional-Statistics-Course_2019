@@ -62,7 +62,20 @@ sort_pval <- sort(pval)
 manual_BH <- 0.5 * (1:length(sort_pval))/length(sort_pval)
 
 ## Use function
-func_BH <- p.adjust(pval, method="hochberg")
+func_BH <- p.adjust(pval, method="BH")
+
+## Get the combined df
+pval_df <- data.frame( manual =  manual_BH, adjust = func_BH )
+
+## Compare both
+ggplot( pval_df, aes( x = func_BH, y = manual_BH  ) ) + geom_point( size = 3, color = 'blue' )  + 
+        theme(panel.grid.minor = element_line(colour = "grey", size = 0.1), 
+        panel.grid.major = element_line(colour = "grey", size = 0.5),
+        axis.text=element_text(size=20),
+        axis.title=element_text(size=20,face="bold")) +
+        labs(x = "BH pvalues from p.adjust", y = 'BH pvalues manually') + theme_bw()+
+        geom_abline( intercept = 0, slope = 1 ) 
+
 ```
 
 
@@ -76,86 +89,36 @@ n = 1000
 p = 10000 
 m = 100 
 b = sqrt( 0.01 / (1 - 0.01) ) #This means each predictor explains 1%
-#indicator for non-null effects 
+
+## indicator for non-null effects 
 eff = c(rep(T, m), rep(F, p-m))
-#Prop_adjust <- data.frame(matrix(nrow = 1000, ncol = 1))
-#Prop_BF <- data.frame(matrix(nrow = 1000, ncol = 1))
-#Prop_BH <- data.frame(matrix(nrow = 1000, ncol = 1))
 
-#for (i in 1:1000) {    
+Prop_adjust <- data.frame(matrix(nrow = 1000, ncol = 1))
+Prop_BF <- data.frame(matrix(nrow = 1000, ncol = 1))
+Prop_BH <- data.frame(matrix(nrow = 1000, ncol = 1))
+pval <- data.frame(matrix(nrow = 1000, ncol = 1))
+BH_pval <- data.frame(matrix(nrow = 1000, ncol = 1))
 
-#pval[i] = pchisq( rnorm(p, b*sqrt(n)*as.numeric(eff), 1)^2, df = 1, lower = F) 
+for (i in 1:1000) {    
+
+pval[i,] = pchisq( rnorm(p, b*sqrt(n) * as.numeric(eff), 1)^2, df = 1, lower = F) 
 
 # Non-adjusted p-values
-#Prop_adjust[i,] <- length(pval[i][(pval[i]<0.05)])/n
+Prop_adjust[i,] <- length(pval[i,][(pval[i,] < 0.05)])/n
 
 # Bonferroni correction
 ## Get Bonferroni corrected P-value
-#BF_pval = 0.05/p 
-#Prop_BF[i,] <- length(pval[i][(pval[i]<BF_pval)])/n
+BF_pval[i,] <- 0.05/p 
+Prop_BF[i,] <- length(pval[i,][(pval[i,] < BF_pval[i,])])/n
 
 # Benjamini and Hochberg FDR at alpha=0.05
-#BH_pval = p.adjust(pval[i], "BH")
-#Prop_BH[i,] <- length(pval[i][(pval[i]<BH_pval)])/n
+BH_pval[i,] <- p.adjust(pval[i,], "BH")
+Prop_BH[i,] <- length(pval[i,][(pval[i,] < BH_pval[i,])])/n
 
-#  }
+}
 
 
 ## Histograms
-#hist(Prop_adjust)
+hist(Prop_adjust)
 ```
 
-**Part (b).**
-
-
-#### Problem 5.
-
-When we have a large number $p$ of predictors $x_j$ collected
-to $n\times p$ matrix $\pmb{X}$ that we want
-to use to predict outcome $y$, the first step is often to 
-fit $p$ simple linear models of type $y \sim \mu_{j} + x_j\beta_{j}$.
-In lecture 1 we did this by applying `lm()` on each column of 
-$\pmb{X}$ separately:
-```{r, eval=F}
-#by mean-centering y and each x, we can ignore intercept terms (since they are 0, see Lecture 0)
-X = as.matrix( scale(X, scale = F) ) #mean-centers columns of X to have mean 0 
-y = as.vector( scale(y, scale = F) )
-#apply lm to each column of X separately and without intercept (see Lecture 0.)
-lm.res = apply(X, 2 , function(x) summary(lm(y ~ -1 + x))$coeff[1,])
-```
-
-In this exercise, we do the same much more efficiently by using direct 
-matrix-vector operations.
-
-**Part (a).**
-
-We know that the formula for the regression coefficient for mean-centered model is
-$$\widehat{\beta}_j =\frac{\pmb x_j^T \pmb y}{\pmb x_j^T \pmb x_j}.$$
-How can you efficiently compute the vector $\widehat{\pmb{\beta}} = (\widehat{\beta_1},\ldots,\widehat{\beta_p})^T$ using only matrix-matrix
-and matrix-vector operations in R? (No for-loops, no apply-functions.)
-
-Demonstrate your method on a data set generated as
-```{r}
-n = 100
-p = 1000
-X = matrix(rnorm(n*p, 0, 1), nrow = n)
-y = rnorm(n)
-```
-Compare your $\beta$-estimates to the ones given by 
-`apply()` as above to see that they agree (up to precision 1e-16).
-
-**Part (b).**
-
-Standard errors from the mean-centered simple linear model are of the form
-$$s_j = \sqrt{\frac{\sigma_j^2}{\pmb x_j^T \pmb x_j}},$$
-where $\sigma_j^2$ is the error variance of the simple linear regression
-with $x_j$ as the predictor.
-How can you estimate these efficiently for all $j$ 
-using $\pmb{X}$, $\pmb{y}$ and $\widehat{\pmb{\beta}}$?
-Again, verify your results by comparing to the standard errors given by 
-`apply()` function.
-
-(Extra: Once everything works, 
-you can test by increasing $p$ from 1,000 to 30,000 that the matrix
-operations still produce results instantaneously but with `apply()` function
-it starts to take annoyingly long.)
