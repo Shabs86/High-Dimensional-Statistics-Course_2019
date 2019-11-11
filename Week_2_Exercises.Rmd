@@ -1,0 +1,288 @@
+---
+title: "HDS Exercise set 2"
+author: "Shabbeer Hassan"
+output:
+  pdf_document: default
+  html_document: default
+theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(29)
+```
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 30px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 22px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 20px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+h4 { /* Header 4 */
+  font-size: 14px;
+  font-family: "Times New Roman", Times, serif;
+  color: Black;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+### Problem 1 -- Solutions
+
+(a)
+```{r echo=T}
+library(qvalue)
+data(hedenfalk)
+
+
+## Histogram of p-values
+hist(hedenfalk$p, prob = T, breaks = 50, xlab = "P-Values")
+curve(dunif(x, 0, 1), 0, 1, add = T, col = "red", lwd = 4)
+```
+
+
+####  Null p-values follow a Uniform(0,1) distribution, which would result in a p-value like the relatively flat at the right tail of the histogram. The proportion of null p-values also appear to be quite large in comparison to non-null values
+
+(b)
+```{r echo=T}
+## Manual estimate 
+pval<- hedenfalk$p
+lambda <- 0.5 
+pi0_man <- sum(pval > lambda)/(length(pval)*lambda)
+
+## Using qvalue package
+qval_obj <- qvalue(p = pval)
+#summary(qval_obj)
+pi0_pkg <- qval_obj$pi0
+
+# Estimates
+pi0_man
+pi0_pkg
+```
+
+(c) 
+```{r echo=T}
+# how many discoveries when determined the significance threshold by 
+# P-value, by Q-value, by BH adjusted P-value or by Bonferroni corrected P-value
+
+pval <- hedenfalk$p
+
+# Threshold seq
+t <- seq(0.01, 0.99, 0.01)
+
+# Alpha 
+Alpha_func <- function(x) {sum(pval < x)}
+Alpha.eval <- sapply(t, Alpha_func)
+
+# BH
+BH_func <- function(x) {sum(p.adjust(pval, method = "BH", n = length(pval)) < x)}
+BH.eval <- sapply(t, BH_func)
+
+# Bonferroni
+Bonf_func <- function(x) {sum(p.adjust(pval, method = "bonferroni", n = length(pval)) < x)}
+Bonf.eval <- sapply(t, Bonf_func)
+
+# Q-value
+Q.eval_func <- function(x) {sum(qvalue(pval)$qvalues < x)}
+Q.eval <- sapply(t, Q.eval_func)
+
+# Combined df
+Eval.df <- as.data.frame(cbind(t, Alpha.eval, BH.eval, Bonf.eval, Q.eval))
+
+# Plot of above eval methods
+library("reshape")
+library("ggplot2")
+Eval.df$t <- as.character(Eval.df$t)
+Eval.df.trans <- melt(Eval.df, id.vars = "t")
+ggplot(Eval.df.trans, aes(x = t, y = log10(value), 
+                          group = variable, color = variable)) + 
+  geom_point() + 
+  geom_line() + 
+  xlab("t") +
+  ylab("Log(sum of discoveries)") +
+  #scale_x_discrete(breaks = seq(0.01, 0.99, by = 0.1), limits=c(0.01, 0.99)) +
+  #theme with white background
+  theme_bw() +
+  #eliminates background, gridlines, and chart border
+  theme(
+    plot.background = element_blank()
+    ,panel.grid.major = element_blank()
+    ,panel.grid.minor = element_blank()
+  ) +
+  #draws x and y axis line
+  theme(axis.line = element_line(color = 'black')) 
+```
+
+#### Its interesting to note that a constant alpha is the most liberal method while as expected Bonferoni is the most strict one. The other thing to note here is that as the threshold increases the sum of discoveries also increase, though Qvalue becomes very liberal at those higher values
+
+(d) 
+```{r echo=T}
+
+# Plotiing qval
+pval <- hedenfalk$p
+q <- qvalue(pval)
+plot(q)
+
+# False discoveries
+# How many discoveries you would make if you allowed 20 false discoveries? 
+fdr = 20/length(pval)
+qval_fdr_1 <- qvalue(pval, fdr.level = fdr)
+sum(qval_fdr_1$significant == TRUE)
+
+# What about if you allowed 10% of false discoveries among all discoveries?
+qval_fdr_2 <- qvalue(pval, fdr.level = 0.1)
+sum(qval_fdr_2$significant == TRUE)
+```
+
+
+### Problem 2 -- Solutions
+
+Let's examine the relationship between BH adjusted P-values and Storey's Q-values.
+Generate $p=5000$ P-values by command
+`pval = c(rbeta(m,1,100), runif(p-m,0,1))`
+where $m=1000$.
+(So here first $m$ P-values come from the alternative distribution and the remaining
+$p-m$ are from the null.)
+
+Apply both BH adjustment (`p.adjust(,method="BH")`) 
+and `qvalue()` to these P-values.
+
+Print out the estimate of $\pi_0 = p_0/p$ given by `qvalue`.
+
+Do linear regression of qvalues on BH-adjusted P-values. 
+Compare the slope to the estimate of $\pi_0$ from `qvalue` 
+and explain why you see what you see.
+
+
+
+#### Problem 3.
+Let's evaluate how `qvalue` works for different alternative distributions.
+Let's generate data sets with $p=5000$ P-values of which $m=500$ correspond
+to true effects, whose P-values are generated from Beta($b_1$,$b_0$) distribution 
+(use `rbeta(m, b.1, b.0)` in R), and the remaining $p_0 = p-m= 4500$ P-values 
+come from the null distribution Uniform(0,1).
+
+(a)
+To familiarize yourself with the Beta distribution, that we use to generate
+the non-null P-values, draw the density functions of all three 
+beta distributions speficied by varying parameters $(b_1,b_0)$ below.
+(You can either use `dbeta(x,b.1,b.0)` to get the densities where 
+vector `x` spans the interval (0,1) and use `plot()` once and then `lines()`
+to add the curves or you can use `curve()` as in the lecture notes by specifying the
+function and the interval.)
+
+(b)
+For each set of parameters $(b_1,b_0)$ given below, 
+generate $R = 500$ replications of the above
+described data simulation. 
+For each replicate, apply `qvalue()` to calculate the false discovery proportion (FDP) and 
+the proportion of true effects that are discovered ("power"), 
+both at the FDR level $\alpha_F = 0.1$, 
+and collect also the estimate of `pi0`. 
+For each set of parameters, draw three histograms:
+FDP, power and `pi0` across $R$ replications and show the
+means of the distributions in the titles.
+
+Does `qvalue()` work as promised in terms of FDR control? 
+What explains the differences in power
+across the settings (i),(ii) and (iii)?
+
+(i) $b_1=1, b_0=1$
+
+(ii) $b_1=1, b_0=100$
+
+(iii) $b_1=1, b_0=500$.
+
+
+
+#### Problem 4.
+Let's study how P-values and Q-values behave in a (very) discrete space.
+
+Suppose you are given $p=1000$ coins and your task is to determine
+which proportion of them are fair (that is, on average, 
+will result in heads in 50% of tosses and in tails in 50% of tosses).
+You do an experiment where you toss each coin 2 times and record
+the number of heads $y_j \in \{0,1,2\}$ for each coin $j\leq p$.
+Your null hypothesis for each coin is that the coin is fair.
+
+(a) What is the null distribution of the outcome values of a single coin tossed 2 times?
+What is the null distribution of (two-sided) 
+P-values of a single coin tossed 2 times?
+(In lectures, it was stated 
+that the null distribution of P-values is Uniform(0,1), or equivalently, that
+$\textrm{Pr}(P_j \leq t\,|\, \textrm{NULL}) = t$ for all $t \in [0,1]$, but 
+now we learn that, 
+in a discrete state space, we need to restrict this formula to exactly those
+threshold values $t$ that correspond to the P-values attainable in the 
+discrete state space.)
+
+(b) Suppose that, with $p=1000$ coins, 
+the observed counts of outcomes 0, 1 and 2 heads are 180, 366 and 454, respectively.
+What is the observed P-value distribution of these $p$ observations?
+How would you estimate $\pi_0$, the proportion of fair coins, 
+by comparing the observed P-value distribution to the null distribution?
+What is your estimate $\widehat{\pi}_0$?
+What is your estimate of Q-value for obsevations whose P-value is 0.5?
+(You may assume that all biased coins are fully biased, that is,
+can only yield either heads or tails but never both.)
+
+(c) What would be the estimate of $\widehat{\pi}_0(\lambda)$ from the lectures
+HDS3 for value of $\lambda = 0.4, 0.5, 0.9$? Which of these three values (if any)
+agrees with what you inferred in part (b)? 
+Apply `qvalue()` to the set of your $p$ P-values and show 
+`plot(qvalue())`. 
+What is the estimated Q-value for obsevations whose P-value is 0.5 using `qvalue()`?
+Does `qvalue()` seem to work well for these kinds of discrete data?
+
+
+
+#### Problem 5.
+Let's see how well $\textrm{lfdr}$ approximates the posterior probability of
+the null hypothesis.
+Simulate $p=1000$ P-values of which $p_0 = 800$ come  
+from the null distribution (Uniform(0,1)) and
+$m=200$ from the non-null distribution Beta(1,100).
+
+(a)
+For each P-value $P_j$, compute the posterior probability that the P-value comes from the 
+null hypothesis ($H_j$) given the knowledge of the true non-null distribution 
+and the true proportion $\pi_0 = p_0/p$.
+(HINT: Expand 
+$\textrm{Pr}(H_j\,|\,P_j, \pi_0, b_1=1, b_0=100)$ by using Bayes formula to switch
+the roles of $H_j$ and $P_j$.)
+
+(b)
+Make a scatter plot of posteriors from part (a) and $\textrm{lfdr}$ 
+values from `qvalue()` function applied to the P-values
+using different colors according to the known null/non-null status.
+Do these two quantities look similar?
+
+(c)
+Compute the average values separately for truly 
+null and non-null hypotheses using (i) the exact posterior probability of 
+null hypothesis and (ii) estimated $\textrm{lfdr}$.
+
