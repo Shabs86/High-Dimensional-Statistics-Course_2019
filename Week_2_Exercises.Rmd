@@ -160,62 +160,126 @@ sum(qval_fdr_2$significant == TRUE)
 
 
 ### Problem 2 -- Solutions
+```{r echo=T}
 
-Let's examine the relationship between BH adjusted P-values and Storey's Q-values.
-Generate $p=5000$ P-values by command
-`pval = c(rbeta(m,1,100), runif(p-m,0,1))`
-where $m=1000$.
-(So here first $m$ P-values come from the alternative distribution and the remaining
-$p-m$ are from the null.)
+# Generate 5000 p-values
+m = 1000
+pval <- c(rbeta(m, 1, 100), runif(p-m, 0, 1))
 
-Apply both BH adjustment (`p.adjust(,method="BH")`) 
-and `qvalue()` to these P-values.
+# BH 
+BH <- p.adjust(pval, method = "BH", n = length(pval))
 
-Print out the estimate of $\pi_0 = p_0/p$ given by `qvalue`.
+# Qvalue
+Qval <- qvalue(pval)
+pi0 <- Qval$pi0  # overall proportion of true null hypotheses
 
-Do linear regression of qvalues on BH-adjusted P-values. 
-Compare the slope to the estimate of $\pi_0$ from `qvalue` 
-and explain why you see what you see.
+# Linear Reg
+lm.fit <- lm(Qval$qvalues ~ BH)
+lm.fit$coefficients
+```
 
 
+#### On comparison of slope to the pi0 estimate from qval we see that they are similar to each other. 
 
-#### Problem 3.
-Let's evaluate how `qvalue` works for different alternative distributions.
-Let's generate data sets with $p=5000$ P-values of which $m=500$ correspond
-to true effects, whose P-values are generated from Beta($b_1$,$b_0$) distribution 
-(use `rbeta(m, b.1, b.0)` in R), and the remaining $p_0 = p-m= 4500$ P-values 
-come from the null distribution Uniform(0,1).
+
+### Problem 3 -- Solutions
 
 (a)
-To familiarize yourself with the Beta distribution, that we use to generate
-the non-null P-values, draw the density functions of all three 
-beta distributions speficied by varying parameters $(b_1,b_0)$ below.
-(You can either use `dbeta(x,b.1,b.0)` to get the densities where 
-vector `x` spans the interval (0,1) and use `plot()` once and then `lines()`
-to add the curves or you can use `curve()` as in the lecture notes by specifying the
-function and the interval.)
+```{r echo=T}
+
+# Generate 5000 p-values
+m = 500
+p = 5000
+pval <- c(rbeta(m, b.1, b.0), runif(p-m, 0, 1))
+
+b.1 = 1
+b.0 = 1
+pval <- c(rbeta(m, b.1, b.0), runif(p-m, 0, 1))
+hist(pval, xlab = "pval", prob = TRUE)
+lines(density(pval))
+
+
+b.1 = 1
+b.0 = 100
+pval <- c(rbeta(m, b.1, b.0), runif(p-m, 0, 1))
+hist(pval, xlab = "pval", prob = TRUE)
+lines(density(pval))
+
+
+b.1 = 1
+b.0 = 500
+pval <- c(rbeta(m, b.1, b.0), runif(p-m, 0, 1))
+hist(pval, xlab = "pval", prob = TRUE)
+lines(density(pval))
+```
+
 
 (b)
-For each set of parameters $(b_1,b_0)$ given below, 
-generate $R = 500$ replications of the above
-described data simulation. 
-For each replicate, apply `qvalue()` to calculate the false discovery proportion (FDP) and 
-the proportion of true effects that are discovered ("power"), 
-both at the FDR level $\alpha_F = 0.1$, 
-and collect also the estimate of `pi0`. 
-For each set of parameters, draw three histograms:
-FDP, power and `pi0` across $R$ replications and show the
-means of the distributions in the titles.
+```{r echo=T}
 
-Does `qvalue()` work as promised in terms of FDR control? 
-What explains the differences in power
-across the settings (i),(ii) and (iii)?
+# Generate R = 500 replicates
+R = 500
+qval_fun <- function(x) {qvalue(p = x)}
 
-(i) $b_1=1, b_0=1$
+#####
 
-(ii) $b_1=1, b_0=100$
+b.1 = 1
+b.0 = 1
 
-(iii) $b_1=1, b_0=500$.
+# Generate replicated pvalues and apply qval function over the columns
+pval_new <- replicate(R, c(rbeta(m, b.1, b.0), runif(p-m, 0, 1)))
+qval <- lapply(1:ncol(pval_new), function(x) qvalue(pval[,x]))
+
+# Extract variables/elements from the above list
+qval_rep <- lapply(qval, `[`, c('qvalues'))
+qval_rep_df <- data.frame(matrix(unlist(qval_rep), nrow=length(qval_rep), byrow=T))
+
+pi0_rep <- lapply(qval, `[`, c('pi0'))
+pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
+names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
+
+# Discoveries, FD, pi0
+alpha=0.1
+D = (sum(req_var_df$qval_rep_df < alpha))
+
+D_func <- function(x) {(sum(qval_rep_df[,x] < alpha))}
+Q.eval <- sapply(1:ncol(pval_new), D_func)
+
+
+####
+
+b.1 = 1
+b.0 = 100
+
+# Generate replicated pvalues and apply qval function over the columns
+pval_new <- replicate(R, c(rbeta(m, b.1, b.0), runif(p-m, 0, 1)))
+qval <- lapply(1:ncol(pval_new), function(x) qvalue(pval[,x]))
+
+# Extract variables/elements from the above list
+qval_rep <- lapply(qval, `[`, c('qvalues'))
+qval_rep_df <- data.frame(matrix(unlist(qval_rep), nrow=length(qval_rep), byrow=T))
+
+pi0_rep <- lapply(qval, `[`, c('pi0'))
+pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
+names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
+
+
+####
+
+b.1 = 1
+b.0 = 500
+# Generate replicated pvalues and apply qval function over the columns
+pval_new <- replicate(R, c(rbeta(m, b.1, b.0), runif(p-m, 0, 1)))
+qval <- lapply(1:ncol(pval_new), function(x) qvalue(pval[,x]))
+
+# Extract variables/elements from the above list
+qval_rep <- lapply(qval, `[`, c('qvalues'))
+qval_rep_df <- data.frame(matrix(unlist(qval_rep), nrow=length(qval_rep), byrow=T))
+
+pi0_rep <- lapply(qval, `[`, c('pi0'))
+pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
+names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
+```
 
 
 
@@ -286,3 +350,15 @@ Compute the average values separately for truly
 null and non-null hypotheses using (i) the exact posterior probability of 
 null hypothesis and (ii) estimated $\textrm{lfdr}$.
 
+## Junk Code
+#req_var <- lapply(qval, `[`, c('qvalues', 'pi0'))
+#req_var_df <- data.frame(matrix(unlist(req_var), ncol = max(lengths(req_var)), byrow = TRUE))
+#names(req_var_df) <- names(req_var[[which(lengths(req_var)>0)[1]]])
+#req_var_df_new<-as.data.frame(matrix(unlist(req_var), nrow=length(unlist(req_var[1]))))
+#library(doFuture)
+#registerDoFuture()
+#plan(multiprocess)
+#X <- 1:ncol(pval)
+#qval <- foreach(x = X) %dopar% {qvalue(pval)}
+#qval_func <- function(x) {qvalue(pval[,x])}
+#qval <- sapply(pval_new, qval_func)
