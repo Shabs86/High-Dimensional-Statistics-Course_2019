@@ -238,12 +238,30 @@ pi0_rep <- lapply(qval, `[`, c('pi0'))
 pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
 names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
 
-# Discoveries, FD, pi0
-alpha=0.1
-D = (sum(req_var_df$qval_rep_df < alpha))
 
+alpha=0.1
+
+# Discoveries
 D_func <- function(x) {(sum(qval_rep_df[,x] < alpha))}
-Q.eval <- sapply(1:ncol(pval_new), D_func)
+Disc <- lapply(1:ncol(pval_new), D_func)
+Disc_rep_df <- data.frame(matrix(unlist(Disc), nrow=length(Disc), byrow=T))
+colnames(Disc_rep_df) <- "Discoveries"
+
+# FD
+FD_func <- function(x) {sum(qval_rep_df[,(m + 1):p] < alpha)}
+FD <- lapply(1:ncol(pval_new), FD_func)
+FD_rep_df <- data.frame(matrix(unlist(FD), nrow=length(FD), byrow=T))
+colnames(FD_rep_df) <- "False Discoveries" 
+
+# Histograms 
+pi_mean <- mean(pi0_rep_df$pi0)
+hist(pi0_rep_df$pi0, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+
+Disc_mean <- mean(Disc_rep_df$Discoveries)
+hist(Disc_rep_df$Discoveries, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
 
 
 ####
@@ -263,6 +281,30 @@ pi0_rep <- lapply(qval, `[`, c('pi0'))
 pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
 names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
 
+alpha=0.1
+
+# Discoveries
+D_func <- function(x) {(sum(qval_rep_df[,x] < alpha))}
+Disc <- lapply(1:ncol(pval_new), D_func)
+Disc_rep_df <- data.frame(matrix(unlist(Disc), nrow=length(Disc), byrow=T))
+colnames(Disc_rep_df) <- "Discoveries"
+
+# FD
+FD_func <- function(x) {sum(qval_rep_df[,(m + 1):p] < alpha)}
+FD <- lapply(1:ncol(pval_new), FD_func)
+FD_rep_df <- data.frame(matrix(unlist(FD), nrow=length(FD), byrow=T))
+colnames(FD_rep_df) <- "False Discoveries" 
+
+# Histograms 
+pi_mean <- mean(pi0_rep_df$pi0)
+hist(pi0_rep_df$pi0, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+
+Disc_mean <- mean(Disc_rep_df$Discoveries)
+hist(Disc_rep_df$Discoveries, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
 
 ####
 
@@ -279,76 +321,33 @@ qval_rep_df <- data.frame(matrix(unlist(qval_rep), nrow=length(qval_rep), byrow=
 pi0_rep <- lapply(qval, `[`, c('pi0'))
 pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
 names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
+
+alpha=0.1
+
+# Discoveries
+D_func <- function(x) {(sum(qval_rep_df[,x] < alpha))}
+Disc <- lapply(1:ncol(pval_new), D_func)
+Disc_rep_df <- data.frame(matrix(unlist(Disc), nrow=length(Disc), byrow=T))
+colnames(Disc_rep_df) <- "Discoveries"
+
+# FD
+FD_func <- function(x) {sum(qval_rep_df[,(m + 1):p] < alpha)}
+FD <- lapply(1:ncol(pval_new), FD_func)
+FD_rep_df <- data.frame(matrix(unlist(FD), nrow=length(FD), byrow=T))
+colnames(FD_rep_df) <- "False Discoveries" 
+
+# Histograms 
+pi_mean <- mean(pi0_rep_df$pi0)
+hist(pi0_rep_df$pi0, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+
+Disc_mean <- mean(Disc_rep_df$Discoveries)
+hist(Disc_rep_df$Discoveries, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
 ```
 
-
-
-#### Problem 4.
-Let's study how P-values and Q-values behave in a (very) discrete space.
-
-Suppose you are given $p=1000$ coins and your task is to determine
-which proportion of them are fair (that is, on average, 
-will result in heads in 50% of tosses and in tails in 50% of tosses).
-You do an experiment where you toss each coin 2 times and record
-the number of heads $y_j \in \{0,1,2\}$ for each coin $j\leq p$.
-Your null hypothesis for each coin is that the coin is fair.
-
-(a) What is the null distribution of the outcome values of a single coin tossed 2 times?
-What is the null distribution of (two-sided) 
-P-values of a single coin tossed 2 times?
-(In lectures, it was stated 
-that the null distribution of P-values is Uniform(0,1), or equivalently, that
-$\textrm{Pr}(P_j \leq t\,|\, \textrm{NULL}) = t$ for all $t \in [0,1]$, but 
-now we learn that, 
-in a discrete state space, we need to restrict this formula to exactly those
-threshold values $t$ that correspond to the P-values attainable in the 
-discrete state space.)
-
-(b) Suppose that, with $p=1000$ coins, 
-the observed counts of outcomes 0, 1 and 2 heads are 180, 366 and 454, respectively.
-What is the observed P-value distribution of these $p$ observations?
-How would you estimate $\pi_0$, the proportion of fair coins, 
-by comparing the observed P-value distribution to the null distribution?
-What is your estimate $\widehat{\pi}_0$?
-What is your estimate of Q-value for obsevations whose P-value is 0.5?
-(You may assume that all biased coins are fully biased, that is,
-can only yield either heads or tails but never both.)
-
-(c) What would be the estimate of $\widehat{\pi}_0(\lambda)$ from the lectures
-HDS3 for value of $\lambda = 0.4, 0.5, 0.9$? Which of these three values (if any)
-agrees with what you inferred in part (b)? 
-Apply `qvalue()` to the set of your $p$ P-values and show 
-`plot(qvalue())`. 
-What is the estimated Q-value for obsevations whose P-value is 0.5 using `qvalue()`?
-Does `qvalue()` seem to work well for these kinds of discrete data?
-
-
-
-#### Problem 5.
-Let's see how well $\textrm{lfdr}$ approximates the posterior probability of
-the null hypothesis.
-Simulate $p=1000$ P-values of which $p_0 = 800$ come  
-from the null distribution (Uniform(0,1)) and
-$m=200$ from the non-null distribution Beta(1,100).
-
-(a)
-For each P-value $P_j$, compute the posterior probability that the P-value comes from the 
-null hypothesis ($H_j$) given the knowledge of the true non-null distribution 
-and the true proportion $\pi_0 = p_0/p$.
-(HINT: Expand 
-$\textrm{Pr}(H_j\,|\,P_j, \pi_0, b_1=1, b_0=100)$ by using Bayes formula to switch
-the roles of $H_j$ and $P_j$.)
-
-(b)
-Make a scatter plot of posteriors from part (a) and $\textrm{lfdr}$ 
-values from `qvalue()` function applied to the P-values
-using different colors according to the known null/non-null status.
-Do these two quantities look similar?
-
-(c)
-Compute the average values separately for truly 
-null and non-null hypotheses using (i) the exact posterior probability of 
-null hypothesis and (ii) estimated $\textrm{lfdr}$.
 
 ## Junk Code
 #req_var <- lapply(qval, `[`, c('qvalues', 'pi0'))
