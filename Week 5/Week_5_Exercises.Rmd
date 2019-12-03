@@ -1,0 +1,331 @@
+---
+title: "HDS Exercise set 5"
+author: "Shabbeer Hassan"
+output:
+  pdf_document: 
+     latex_engine: xelatex
+theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(29)
+#devtools::install_github('yihui/tinytex')
+options(tinytex.verbose = TRUE)
+```
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 30px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 22px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 20px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+h4 { /* Header 4 */
+  font-size: 14px;
+  font-family: "Times New Roman", Times, serif;
+  color: Black;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+### Problem 1 -- Solution
+
+
+```{r echo=T}
+
+# Libraries
+library(glmnet)
+library(caret)
+library(plotmo)
+library(car)
+library(tidyverse)
+library(ggplot2)
+library(MASS)
+library(data.table)
+library(dplyr)
+library(boot)
+
+```
+
+
+
+### Problem 1 -- Solution
+
+```{r echo=T}
+
+# Import data
+dat <- read.csv("E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 5/HDS_ex5_1.txt", sep="")
+
+# Estimate for mean
+dat_mean <- mean(dat$x * dat$y)
+dat_mean
+
+# Bootstrap mean
+B = 1000 # bootstrap samples
+n = 100
+
+# Function for mean of product of columns
+foo <- function(data, indices){
+  dt <- data[indices,]
+  c(
+    mean(dt[,1] * dt[,2])
+  )
+}
+
+# Draw bootstrap samples off dataset and take mean of product each time
+# Use function "boot" to generate boostsrap samples from our data and use the function above on each 100 samples for B = 1000 replications
+dat.boot <- boot(dat, foo , R = B)
+dat.boot_mean <- dat.boot$t
+hist(dat.boot_mean, index=1)
+
+# Confidence INtervals 
+boot.ci(boot.out = dat.boot, index = 1, type = "perc")
+```
+
+
+
+
+### Problem 2 -- Solution
+
+(a)
+```{r echo=T}
+
+# Import data
+leu_dat <- read.csv("E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 5/HDS_leukemia.txt", sep="")
+
+
+# Test & Train
+test <- leu_dat[c(71, 72), ]
+train <- leu_dat[-c(71, 72), ]
+
+# Response & Predictors
+X.test <- test[, -1]
+X.train <- train[, -1]
+Y.test <- test[, 1]
+Y.train <- train[, 1]
+
+# Ridge Reg
+cv.ridge <- cv.glmnet(x = as.matrix(X.train), y  = as.matrix(Y.train), family = "binomial", type.measure = "deviance", alpha = 0.05, nfolds = 10)
+plot(cv.ridge)
+
+# LASSO
+cv.lasso <- cv.glmnet(x = as.matrix(X.train), y  = as.matrix(Y.train), family = "binomial", type.measure = "deviance", alpha = 0.95, nfolds = 10)
+plot(cv.lasso) 
+
+## Ridge deviance plot
+ridge.glmnet <- cv.ridge$glmnet.fit 
+ridge_mod <- as.data.frame(cbind(ridge.glmnet$dev.ratio, ridge.glmnet$lambda)) # getting dev.ratio & lambda together
+colnames(ridge_mod) <- c("dev.ratio", "lambda")
+ridge_mod <- formatC(ridge_mod, digits = 4, format = "f") # limiting the decimal places
+
+plot_glmnet(cv.ridge$glmnet.fit, label = T, xvar = "dev") 
+abline(v = ridge_mod[ridge_mod$lambda == cv.ridge$lambda.1se, "dev.ratio"] , lty = 2)
+
+
+## Lasso deviance plot
+lasso.glmnet <- cv.lasso$glmnet.fit
+lasso_mod <- as.data.frame(cbind(lasso.glmnet$dev.ratio, lasso.glmnet$lambda)) # getting dev.ratio & lambda together
+colnames(lasso_mod) <- c("dev.ratio", "lambda")
+
+plot_glmnet(cv.lasso$glmnet.fit, label = T, xvar = "dev") 
+abline(v = lasso_mod[lasso_mod$lambda == cv.lasso$lambda.1se, "dev.ratio"] , lty = 2)
+
+
+## Prediction - Ridge
+response_ridge <- predict(cv.ridge, as.matrix(X.test), s = "lambda.1se", type = "response")
+response_ridge
+
+## Prediction - Lasso
+response_lasso <- predict(cv.lasso, as.matrix(X.test), s = "lambda.1se", type = "response")
+response_lasso
+
+```
+
+#### For both ridge and lasso the predictions are åretty much on the spot though ridge gives better prediction probability than lasso.
+
+
+
+(b)
+
+```{r echo=T}
+
+
+# Ridge Reg
+cv.ridge <- cv.glmnet(x = as.matrix(X.train), y  = as.matrix(Y.train), family = "binomial", type.measure = "class", alpha = 0.05, nfolds = 10)
+plot(cv.ridge)
+
+# LASSO
+cv.lasso <- cv.glmnet(x = as.matrix(X.train), y  = as.matrix(Y.train), family = "binomial", type.measure = "class", alpha = 0.95, nfolds = 10)
+plot(cv.lasso) 
+
+## Ridge deviance plot
+ridge.glmnet <- cv.ridge$glmnet.fit 
+ridge_mod <- as.data.frame(cbind(ridge.glmnet$dev.ratio, ridge.glmnet$lambda)) # getting dev.ratio & lambda together
+colnames(ridge_mod) <- c("dev.ratio", "lambda")
+ridge_mod <- formatC(ridge_mod, digits = 4, format = "f") # limiting the decimal places
+
+plot_glmnet(cv.ridge$glmnet.fit, label = T, xvar = "dev") 
+abline(v = ridge_mod[ridge_mod$lambda == cv.ridge$lambda.1se, "dev.ratio"] , lty = 2)
+
+
+## Lasso deviance plot
+lasso.glmnet <- cv.lasso$glmnet.fit
+lasso_mod <- as.data.frame(cbind(lasso.glmnet$dev.ratio, lasso.glmnet$lambda)) # getting dev.ratio & lambda together
+colnames(lasso_mod) <- c("dev.ratio", "lambda")
+
+plot_glmnet(cv.lasso$glmnet.fit, label = T, xvar = "dev") 
+abline(v = lasso_mod[lasso_mod$lambda == cv.lasso$lambda.1se, "dev.ratio"] , lty = 2)
+
+
+## Prediction - Ridge
+response_ridge <- predict(cv.ridge, as.matrix(X.test), s = "lambda.1se", type = "response")
+response_ridge
+
+## Prediction - Lasso
+response_lasso <- predict(cv.lasso, as.matrix(X.test), s = "lambda.1se", type = "response")
+response_lasso
+
+```
+
+
+#### For both ridge and lasso the predictions are åretty much on the spot though ridge gives better prediction probability than lasso. But when using "type.measure"=class, the prediction probabilities have imporved quite a bit 
+
+
+
+
+
+
+### Problem 3 -- Solution
+
+
+```{r echo=T}
+
+# Fit lasso model
+fit_lasso <- cv.glmnet(type.measure = "class", x = as.matrix(leu_dat[,-1]), y = as.matrix(leu_dat[,1]), alpha = 1, family = 'binomial', nfolds = 10)
+plot_glmnet(fit_lasso)
+
+# Predict 
+prob_lasso <- predict(fit_lasso, as.matrix(leu_dat[,-1]), s = "lambda.1se", type='response')
+
+# Get MSE
+lasso.mse <- mean((as.matrix(leu_dat[,1]) - prob_lasso)^2)
+lasso.mse	
+
+# extract optimal lambda
+lambda_opt <- fit_lasso$lambda.1se
+
+# manually plugging lambda into glmnet to get BEST MODEL
+fit_lasso_2 <- glmnet(x = as.matrix(leu_dat[,-1]), y = as.matrix(leu_dat[,1]), lambda = lambda_opt) 
+
+
+# Make a function for above and bootstrap
+foo <- function(x, y){
+# Fit lasso model
+mod <- cv.glmnet(type.measure = "class", x = as.matrix(x), y = as.matrix(y), alpha = 1, family = 'binomial', nfolds = 10)
+# Get non-zero coefficients
+non-zero <- names(fit_lasso_2$beta[, 1][fit_lasso_2$beta[, 1] > 1e-10])
+}
+
+
+# Run Bootstrap
+dat.boot <- boot(dat, foo , R = B)
+
+
+N = 100
+mat <- matrix(0, ncol = N, nrow = ncol(leu_dat[,-1]))
+rownames(mat) <- colnames((leu_dat[,-1]))
+for (i in 1:N){	
+  # Fit lasso model
+  mod <- cv.glmnet(type.measure = "class", x = as.matrix(leu_dat[,-1]), y = as.matrix(leu_dat[,1]), alpha = 1, family = 'binomial', nfolds = 10)
+  # Get non-zero coefficients
+  non_zero <- as.vector(names(mod$beta[, 1][mod$beta[, 1] > 1e-10]))
+  for(i in colnames(mat)[colnames(mat) %in% names(non_zero)]) {
+    # fill these matrix columns with the designated values from your vector
+    mat[ , i] <- 1
+  }
+  i = i+1
+}
+
+
+```
+
+
+
+
+
+### Problem 4 -- Solution
+
+(a)
+```{r echo=T}
+
+# Function to generate a pair of correlated variables from lecture 6
+gen.cor.pair <- function(r, n){ #r is target correlation, n is sample size
+u <- rnorm(n, 0, sqrt(abs(r))) #temporary variable that is used for generating x1 and x2
+x1 <- scale(u + rnorm(n, 0, sqrt(1 - abs(r))))
+x2 <- scale(sign(r)*u + rnorm(n, 0, sqrt(1 - abs(r))))
+cbind(x1, x2) #return matrix
+}
+
+# Testing function
+n = 10000
+r = c(−0.9, −0.5, 0, 0.5, 0.9)
+r.est1 <- cor(gen.cor.pair(r = r[1], n = n))[[1, 2]]
+r.est2 <- cor(gen.cor.pair(r = r[2], n = n))[[1, 2]]
+r.est3 <- cor(gen.cor.pair(r = r[3], n = n))[[1, 2]]
+r.est4 <- cor(gen.cor.pair(r = r[4], n = n))[[1, 2]]
+
+```
+
+
+
+
+(b)
+```{r echo=T}
+
+n = 200
+r = c(0, −0.5, 0.99, 0.999)
+R = 50 #replicates of data set
+r.est.1 <- replicate(R, gen.cor.pair(r = r[1], n = n)) #returns cor(x,y) for R indep. data sets
+r.est.2 <- replicate(R, gen.cor.pair(r = r[1], n = n)) #returns cor(x,y) for R indep. data sets
+r.est.3 <- replicate(R, gen.cor.pair(r = r[1], n = n)) #returns cor(x,y) for R indep. data sets
+r.est.4 <- replicate(R, gen.cor.pair(r = r[1], n = n)) #returns cor(x,y) for R indep. data sets
+
+```
+
+
+
+
+#### JUNK CODE
+dat_boot <-  replicate(B, dat[sample(1:n, n, replace = T),][1,2])
+require(boot)
+yourCVGLM<- cv.glmnet(type.measure = "class", y = as.matrix(leu_dat[,1]), x = as.matrix(leu_dat[,-1]), family="binomial", K=100)
+names(yourCVGLM$beta[, 1][yourCVGLM$beta[, 1] > 1e-10])

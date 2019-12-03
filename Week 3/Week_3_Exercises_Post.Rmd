@@ -1,0 +1,729 @@
+---
+title: "HDS Exercise set 3"
+author: "Shabbeer Hassan"
+output:
+  pdf_document: 
+     latex_engine: xelatex
+theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(29)
+#devtools::install_github('yihui/tinytex')
+options(tinytex.verbose = TRUE)
+```
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 30px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 22px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 20px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+h4 { /* Header 4 */
+  font-size: 14px;
+  font-family: "Times New Roman", Times, serif;
+  color: Black;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+### Problem 1 -- Solution
+
+(a)
+
+```{r echo=T}
+
+library(tidyverse)
+library(ggplot2)
+
+# Dataset
+HDS_ex3 <- read.csv("~/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.txt", sep=" ")
+
+train <- HDS_ex3[ c(1:10), ]
+test <- HDS_ex3[ -c(1:10), ]
+
+### Models using TRAIN data
+
+# 1st order LM
+y1_train <- lm(y ~ x, data = train)
+sm_y1_train <- summary( y1_train )
+plot(fitted(y1_train), residuals(y1_train)) # Fitted vs Residuals
+
+# 2nd order LM
+y2_train <- lm(y ~ poly(x, 2, raw = T), data = train)
+sm_y2_train <- summary( y2_train )
+plot(fitted(y2_train), residuals(y2_train)) # Fitted vs Residuals
+
+# 9th order LM
+y9_train <- lm(y ~ poly(x, 9, raw = T), data = train)
+sm_y9_train <- summary( y9_train )
+plot( fitted(y9_train), residuals(y9_train) ) # Fitted vs Residuals
+
+```
+
+(b)
+
+```{r echo=T}
+
+##### Plot training data for all models
+
+x.grid = (seq(min(train$x),max(train$x),length=100))
+           
+# Adding predicted values to a dataset
+pred_train <- as.data.frame(cbind( x.grid,
+                    predict(y1_train, data.frame(x = x.grid)), 
+                    predict( y2_train, data.frame(x = x.grid)), 
+                  predict( y9_train, data.frame(x = x.grid))))
+colnames( pred_train ) <- c( "x", "1st_order_LM", "2nd_order_LM", "9th_order_LM")
+
+plot(x.grid, pred_train$`1st_order_LM`, type="l", col="red", ylim=c(0.2,1.2))
+lines(x.grid, pred_train$`2nd_order_LM`, col="green", ylim=c(0.2,1.2))
+lines(x.grid, pred_train$`9th_order_LM`, col="blue", ylim=c(0.2,1.2))
+
+```
+
+
+(c)
+```{r echo=T}
+
+### Models using test 
+
+# 1st order LM & mse
+y1_test <- predict(y1_train, newdata = test)
+y1_test_mse <- mean((test$y - y1_test)^ 2)
+
+# 2nd order LM
+y2_test <- predict(y2_train, newdata = test)
+y2_test_mse <- mean((test$y - y2_test)^ 2)
+
+# 9th order LM
+y9_test <- predict(y9_train, newdata = test)
+y9_test_mse <- mean((test$y - y9_test)^ 2)
+
+
+# Obtain TEST MSE's
+test_mse.df <- as.data.frame(cbind( "Test_MSE", y1_test_mse, y2_test_mse, y9_test_mse ))
+colnames(test_mse.df) <- c("Data", "1st_order", "2nd order", "9th_order")
+
+# Obtain TRAIN MSE's
+y1_train_mse <- mean(y1_train$residuals^2)
+y2_train_mse <- mean(y2_train$residuals^2)
+y9_train_mse <- mean(y9_train$residuals^2)
+train_mse.df <- as.data.frame(cbind( "Train_MSE", y1_train_mse, y2_train_mse, y9_train_mse ))
+colnames(train_mse.df) <- c("Data", "1st_order", "2nd order", "9th_order")
+
+# Get a df to showcase diff bet train and test MSE
+diff_mse <- rbind(test_mse.df, train_mse.df)
+diff_mse
+```
+
+#### Training MSE's for the 1st, 2nd and 9th order models are lower than the test MSE's. However, when using test data, we see that MSE for 9th order is quite high whereas 2nd order model is the lowest.
+
+
+(d)
+```{r echo=T}
+
+### Plot predicted x-values against actual x from train data
+
+## Prediction for each models
+predict_y1 <- predict(y1_train, newdata = test)
+
+predict_y2 <- predict(y2_train, newdata = test)
+
+predict_y9 <- predict(y9_train, newdata = test)
+
+# Adding all predicted values in a df
+predicted_df <- as.data.frame(cbind( test$x, predict_y1, predict_y2, predict_y9 ))
+colnames(predicted_df) <- c( "x", "1st_order_LM", "2nd_order_LM", "9th_order_LM")
+
+
+# Convert from wide to long
+predicted_test.df <- reshape2::melt(predicted_df, 
+                      id = "x")
+
+# Plotting 
+predicted_df %>%
+     gather(key,value, "1st_order_LM", "2nd_order_LM", "9th_order_LM") %>%
+    ggplot(aes(x=x, y=value, colour=key)) +
+    geom_line() +
+  #theme with white background
+     theme_bw() +
+  #eliminates background, gridlines, and chart border
+     theme(
+       plot.background = element_blank()
+      ,panel.grid.major = element_blank()
+      ,panel.grid.minor = element_blank()
+      ) +
+  #draws x and y axis line
+     theme(axis.line = element_line(color = 'black')) +
+  scale_x_continuous( "X", limits = c(0, 1.1) ) + 
+  scale_y_continuous( "Y", limits = c(0, 2.1)) +
+  labs(title = "Predicted values from different order linear models")
+
+```
+
+#### The first degree model is reasonable, but we can see that the second degree model fits much better. The ninth degree model seem rather wild.
+
+(e).
+
+```{r echo=T}
+
+# Get truth "y" into predicted dataframe
+pred_truth.df <- as.data.frame( cbind(test$y, predicted_df) )
+colnames(pred_truth.df) <- c("truth", "x", "1st_order_LM", "2nd_order_LM", "9th_order_LM")
+
+## Bias-Variance tradeoff
+get_bias = function(estimate, truth) {
+  mean(estimate) - truth
+}
+
+get_var = function(estimate) {
+  mean((estimate - mean(estimate)) ^ 2)
+}
+
+get_mse = function(truth, estimate) {
+  mean((estimate - truth) ^ 2)
+}
+
+
+# Bias from 3 models
+bias_1st <- get_bias(pred_truth.df$`1st_order_LM`, pred_truth.df$truth)
+bias_2nd <- get_bias(pred_truth.df$`2nd_order_LM`, pred_truth.df$truth)
+bias_9th <- get_bias(pred_truth.df$`9th_order_LM`, pred_truth.df$truth)
+
+bias_df <- as.data.frame( cbind(bias_1st, bias_2nd, bias_9th) )
+bias <- c(mean(bias_df$bias_1st), mean(bias_df$bias_2nd), mean(bias_df$bias_9th))
+
+# Variance from 3 models
+var_1st <- get_var(pred_truth.df$`1st_order_LM`)
+var_2nd <- get_var(pred_truth.df$`2nd_order_LM`)
+var_9th <- get_var(pred_truth.df$`9th_order_LM`)
+
+var <- as.data.frame( rbind(var_1st, var_2nd, var_9th) )
+
+# MSE from 3 models
+mse_1st <- get_mse(pred_truth.df$`1st_order_LM`, pred_truth.df$truth)
+mse_2nd <- get_mse(pred_truth.df$`2nd_order_LM`, pred_truth.df$truth)
+mse_9th <- get_mse(pred_truth.df$`9th_order_LM`, pred_truth.df$truth)
+
+mse <- as.data.frame( rbind(mse_1st, mse_2nd, mse_9th) )
+
+# Summarize these above results in the following table
+results <- data.frame (
+  cbind(poly_degree = c(1, 2, 9),
+        round(bias^2, 5),
+        round(mse, 5),
+        round(var, 5))
+)
+colnames(results) = c("Degree", "Mean Squared Error", "Bias Squared", "Variance")
+rownames(results) = NULL
+knitr::kable(results, booktabs = TRUE, escape = TRUE, align = "c")
+
+# Bias-Variance Tradeoff
+# Defined as, bias ^ 2 + variance == mse
+
+```
+
+#### We see that the 9th order model has the highest variance and 2nd order model has the lowest bias. 
+
+##### We see that the 2nd order model gets the best bias-variance tradeoff here
+
+
+
+
+### Problem 2 -- Solution
+
+(a)
+
+```{r echo=T}
+
+library(MASS)
+data(Boston)
+
+#Using all variables as predictors
+
+lm.fit <- lm(medv ~ ., data = Boston)
+summary(lm.fit)
+
+AIC(lm.fit)
+BIC(lm.fit)
+
+
+# Using all but age
+lm.fit1 <- lm(medv ~ .-age , data = Boston )
+summary (lm.fit1)
+
+AIC(lm.fit1)
+BIC(lm.fit1)
+
+
+# Using all but rm
+lm.fit2 <- lm(medv ~ .-rm , data = Boston )
+summary (lm.fit2)
+
+AIC(lm.fit2)
+BIC(lm.fit2)
+
+### Comparing AIC & BIC
+AIC(lm.fit, lm.fit1, lm.fit2)
+BIC(lm.fit, lm.fit1, lm.fit2)
+
+```
+#### Both AIC and BIC are minimized in the second model with just the age removed. 
+
+
+(b)
+
+```{r echo=T}
+
+# Get log-lk values from AIC = 2k - 2loglk
+# Here 
+loglk_aic_full <- (-AIC(lm.fit) + 2*15)/2
+loglk_aic_reduced <- (-AIC(lm.fit1) + 2*14)/2
+
+loglk_aic_full
+loglk_aic_reduced
+
+# The Likelihood ratio should be converted to -2*difference in log likelihoods: −2ln(Likelihood_reduced/Likelihood_full)
+# And the above can be written as:
+# −2ln(Likelihood_reduced)− −2ln(Likelihood_full)
+# LRT then should be approximately Chi-squared distributed with df equal to the number of fixed dimensions (difference in free parameters between the full and reduced model).
+
+# Likelihood-Ratio test (frequentist)
+Deviance <- (-2 * loglk_aic_reduced) - (-2 * loglk_aic_full)
+Deviance
+
+Chisq.crit <- qchisq(0.95,1)
+Chisq.crit
+
+# LRT
+Deviance >= Chisq.crit   # perform the LRT
+
+# p-value
+options(digits=10)
+1-pchisq(Deviance,1)
+
+```
+
+#### The p-values for LET calculation based on AIC agrees with the one from full model for variable age (0.95 vs 0.9576)
+
+
+(c)
+
+```{r echo=T}
+
+# Get log-lk values from BIC = ln(n)*k - 2ln(L)
+loglk_bic_full <- (-BIC(lm.fit) + log(nrow(Boston))*15)/2
+loglk_bic_reduced <- (-BIC(lm.fit2) + log(nrow(Boston))*14)/2
+
+loglk_bic_full
+loglk_bic_reduced
+
+# The Likelihood ratio should be converted to -2*difference in log likelihoods: −2ln(Likelihood_reduced/Likelihood_full)
+# And the above can be written as:
+# −2ln(Likelihood_reduced)− −2ln(Likelihood_full)
+# LRT then should be approximately Chi-squared distributed with df equal to the number of fixed dimensions (difference in free parameters between the full and reduced model).
+
+# Likelihood-Ratio test (frequentist)
+Deviance <- (-2*loglk_bic_reduced) - (-2*loglk_bic_full)
+Deviance
+
+Chisq.crit <- qchisq(0.95,1)
+Chisq.crit
+
+# LRT
+Deviance >= Chisq.crit   # perform the LRT
+
+# p-value
+options(digits = 22)
+1-pchisq(Deviance,1)
+
+```
+
+# BIC based LRT gets a highly significant p-value as Deviance is very, very hugh compared to critical value of chi.square distribution at 1 degrees of freedom. 
+
+
+
+
+### Problem 3 -- Solution
+
+(a)
+```{r echo=T}
+
+library(MASS)
+library(caret)
+data(Boston)
+
+tr.ind = 1:350
+
+# Train & Test dataset
+train <- Boston[tr.ind, ]
+test <- Boston[-tr.ind, ]
+
+# Using all variables as predictors
+train_lm.fit <- lm(medv ~ ., train)
+
+# MSE for train and test data based models
+mse_train <- mean(train_lm.fit$residuals^2)
+mse_train
+mse_test <- mean((test$medv - predict.lm(train_lm.fit, test)) ^ 2)
+mse_test
+
+```
+#### The test data model has a higher RMSE than the train dataset. This could be an indication that your model is overfitting
+
+
+
+(b)
+```{r echo=T}
+
+# 10-fold cross-validation (CV) within training data
+modelcv <- train(
+  medv ~ .,
+  data = train,
+  method = "lm",
+  trControl = trainControl(
+    method = "cv", number = 10
+  )
+)
+
+RMSE_Modelcv <- modelcv$results$RMSE
+RMSE_Modelcv
+
+pcv <- predict(modelcv, test)
+errorcv <- (pcv- test$medv)
+RMSE_NewDatacv <- sqrt(mean(errorcv^2))
+RMSE_NewDatacv
+
+```
+
+#### The cross validation didnt work that well at all. Here, we arent randomly dividing the dataset into test and train sets which increases overfitting error, violating the assumption of the data being iid. 
+
+
+
+(c)
+```{r echo=T}
+tr.ind <- read.csv("~/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.3_tr.txt", sep=" ")
+data(Boston)
+
+# Train & Test dataset
+
+id <- which(rownames(Boston) %in% tr.ind$X1 )
+train <- Boston[id, ]
+test <- Boston[-id, ]
+
+# Using all variables as predictors
+train_lm.fit <- lm(medv ~ ., train)
+
+# MSE for train and test data based models
+mse_train <- mean(train_lm.fit$residuals^2)
+mse_train
+mse_test <- mean((test$medv - predict.lm(train_lm.fit, test)) ^ 2)
+mse_test
+
+# 10-fold cross-validation (CV) within training data
+modelcv <- train(
+  medv ~ .,
+  data = train,
+  method = "lm",
+  trControl = trainControl(
+    method = "cv", number = 10
+  )
+)
+
+RMSE_Modelcv <- modelcv$results$RMSE
+RMSE_Modelcv
+
+pcv <- predict(modelcv, test)
+errorcv <- (pcv- test$medv)
+RMSE_NewDatacv <- sqrt(mean(errorcv^2))
+RMSE_NewDatacv
+```
+
+# We see that randomly splitting did massively improve th CV based rmse because it remóved underlying bias associated in separating our datasets non-randomly, thus restring the assumption of iid for inference. 
+
+
+
+### Problem 4 -- Solution
+
+(a)
+```{r echo=T}
+
+tr.ind <- fread("~/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.3_tr.txt", sep=" ")
+
+# Train & Test dataset
+data(Boston)
+train <- Boston[tr.ind$X1, ]
+test <- Boston[-tr.ind$X1, ]
+
+# Create null model
+glm.null <- glm(medv ~ 1, family = gaussian,data = train)
+
+# Using all variables as predictors
+train_glm.fit <- glm(medv ~ ., family = gaussian, train)
+
+# AIC-based forward selection
+model.aic.forward <- step(glm.null, direction = "forward", k = 2, trace = FALSE,
+                          scope = list(lower=glm.null, upper=train_glm.fit))
+summary(model.aic.forward)
+
+
+# BIC-based forward selection
+model.bic.forward <- step(glm.null, direction = "forward", k = log(nrow(train)), trace = FALSE,
+                          scope = list(lower=glm.null, upper=train_glm.fit))
+summary(model.bic.forward)
+
+```
+
+
+
+(b)
+```{r echo=T}
+
+# AIC-based backward selection
+model.aic.backward <- step(train_glm.fit,  data = train, direction = "backward", k = 2, trace = FALSE)
+summary(model.aic.backward)
+
+
+# BIC-based backward selection
+model.bic.backward <- step(train_glm.fit, direction = "backward", k = log(nrow(train)), trace = FALSE)
+summary(model.bic.backward)
+
+```
+
+
+
+(c)
+```{r echo=T}
+
+# Use AIC for interaction terms in the model
+# Limiting to 2nd order interactions only
+
+# AIC-based forward selection
+model.aic.interaction.forward <- step(train_glm.fit, direction = "forward", k = 2, trace = FALSE,
+                                      scope = . ~ .^2)
+summary(model.aic.interaction.forward)
+
+
+# BIC-based forward selection
+model.bic.interaction.forward <- step(train_glm.fit, direction = "forward", k = log(nrow(train)), 
+                                      trace = FALSE, scope = . ~ .^2)
+summary(model.bic.interaction.forward)
+
+```
+
+
+
+(d)
+```{r echo=T}
+
+##################### Getting predictors + MSE from previous models
+
+##### AIC_forward model
+AIC_forward <- attr(model.aic.forward$terms , "term.labels")
+AIC_forward
+
+# Train
+model.aic.forward.train <- step(glm.null, data = train, direction = "forward", k = 2, trace = FALSE,
+                          scope = list(lower=glm.null, upper=train_glm.fit))
+AIC_forward_mse_train <- mean(model.aic.forward.train$residuals^2)
+
+# Test
+model.aic.forward.test <- predict(model.aic.forward.train, newdata = test)
+AIC_forward_mse_test <- mean((test$medv - model.aic.forward.test)^ 2)
+
+
+
+
+##### BIC_forward model
+BIC_forward <- attr(model.bic.forward$terms , "term.labels")
+BIC_forward
+
+# Train
+model.bic.forward.train <- step(glm.null, data = train, direction = "forward", k = log(nrow(train)), trace = FALSE,
+                          scope = list(lower=glm.null, upper=train_glm.fit))
+BIC_forward_mse_train <- mean(model.bic.forward.train$residuals^2)
+
+# Test
+model.bic.forward.test <- predict(model.bic.forward.train, newdata = test)
+BIC_forward_mse_test <- mean((test$medv - model.bic.forward.test)^ 2)
+
+
+
+
+##### AIC_backward model
+AIC_backward <- attr(model.aic.backward$terms , "term.labels")
+AIC_backward
+
+# Train
+model.aic.backward.train <- step(train_glm.fit,  data = train, direction = "backward", k = 2, trace = FALSE)
+AIC_backward_mse_train <- mean(model.aic.backward.train$residuals^2)
+
+# Test
+model.aic.backward.test <- predict(model.aic.backward.train, newdata = test)
+AIC_backward_mse_test <- mean((test$medv - model.aic.backward.test)^ 2)
+
+
+
+
+
+##### BIC_backward model
+BIC_backward <- attr(model.bic.backward$terms , "term.labels")
+BIC_backward
+
+# Train
+model.bic.backward.train <- step(train_glm.fit, data = train, direction = "backward", k = log(nrow(train)), trace = FALSE)
+BIC_backward_mse_train <- mean(model.bic.backward.train$residuals^2)
+
+# Test
+model.bic.backward.test <- predict(model.bic.backward.train, newdata = test)
+BIC_backward_mse_test <- mean((test$medv - model.bic.backward.test)^ 2)
+
+
+
+##### AIC-based forward selection + interaction
+AIC_forward_interaction <- attr(model.aic.interaction.forward$terms , "term.labels")
+AIC_forward_interaction
+
+# Train
+model.aic.interaction.forward.train <- step(train_glm.fit,  data = train, direction = "forward", k = 2, trace = FALSE,
+                                      scope = . ~ .^2)
+AIC_forward_interaction_mse_train <- mean(model.aic.interaction.forward.train$residuals^2)
+
+# Test
+model.aic.interaction.forward.test <- predict(model.aic.interaction.forward.train, newdata = test)
+AIC_forward_interaction_mse_test <- mean((test$medv - model.aic.interaction.forward.test)^ 2)
+
+
+
+##### BIC-based forward selection + interaction
+BIC_forward_interaction <- attr(model.bic.interaction.forward$terms , "term.labels")
+BIC_forward_interaction
+
+# Train
+model.bic.interaction.forward.train <- step(train_glm.fit, direction = "forward", k = log(nrow(train)), 
+                                      trace = FALSE, scope = . ~ .^2)
+BIC_forward_interaction_mse_train <- mean(model.bic.interaction.forward.train$residuals^2)
+
+# Test
+model.bic.interaction.forward.test <- predict(model.bic.interaction.forward.train, newdata = test)
+BIC_forward_interaction_mse_test <- mean((test$medv - model.bic.interaction.forward.test)^ 2)
+
+
+
+
+### Get results from above together
+
+results <- data.frame(rbind( 
+                  c(AIC_forward_mse_train, AIC_forward_mse_test),
+                  c(BIC_forward_mse_train, BIC_forward_mse_test),
+                  c(AIC_backward_mse_train, AIC_backward_mse_test),
+                  c(BIC_backward_mse_train, BIC_backward_mse_test),
+                  c(AIC_forward_interaction_mse_train, AIC_forward_interaction_mse_test),
+                  c(BIC_forward_interaction_mse_train, BIC_forward_interaction_mse_test)))
+colnames(results) <- c("Training_MSE", "Test_MSE")
+results <- results %>% mutate(Model = c("AIC_forward", "BIC_forward", "AIC_backward", 
+                                        "BIC_backward", "AIC_forward_interaction", "BIC_forward_interaction"))
+results
+
+```
+
+
+#### The results suggest that stepwise AIC-forward regression model with 2nd order interaction terms has the lowest RMSE indictaing it to be the better model. The variance not explained is given by MSE/Variance(Y) and hence 1-Variance Unexplained will give us the explained variance
+
+```{r echo=T}
+
+## Variance explained
+(1 - AIC_forward_interaction_mse_test/var(test$medv)) * 100
+
+```
+
+
+
+
+
+
+### Problem 5 -- Solution
+
+(a)
+```{r echo=T}
+
+# Dataset
+library(data.table)
+HDS_ex3 <- fread("~/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.txt", sep=" ")
+
+# Null Model
+glm.null <- glm(z ~ 1, data = HDS_ex3)
+
+# Log Reg
+glm.fit <- glm(z ~ x + I(x^2), family = "binomial", data = HDS_ex3)
+
+# Forward stepwise selection with AIC
+model.aic.forward <- step(glm.null, data = HDS_ex3, direction = "forward", k = 2, trace = TRUE,
+                          scope = list(lower=glm.null, upper=glm.fit))
+summary(model.aic.forward)
+
+### THe intercept model is the one chosen by the stepwise method
+new.model <- glm(z ~ 1 + x + I(x^2), family = "binomial", data = HDS_ex3)
+AIC(new.model)
+
+```
+
+#### We may not necessarily always get the highest variance explained and lower AIC because we only compare a subset of possible models and might miss the one with the highest adjR2/lowest AIC which would include all the variables, like the above case. Given a set of predictors, there is no guarantee that stepwise will find the “best” combination of predictors (defined as, say, the highest adjusted R^2); it can get stuck in local optima´and never reach the so-called global optima which might be the desired solution
+
+
+(b)
+```{r echo=T}
+
+# Logistic reg - 1
+log.reg1 <- glm(z ~ 1 + x + I(x^2), family = "binomial", data = HDS_ex3)
+summary(log.reg1)
+
+# Logistic reg - 2
+log.reg2 <- glm(z ~ 1+ x + I(x^2) + y, family = "binomial", data = HDS_ex3)
+summary(log.reg2)
+
+```
+
+#### The above results suggest that there is a problem of multicollinearity which exists when related variables appear as predictors violating the assumption of independence in regression.
+
+(c)
+```{r echo=T}
+
+# Backward Selection
+model.aic.backward <- step(log.reg2,  data = HDS_ex3, direction = "backward", k = 2, trace = FALSE)
+summary(model.aic.backward)
+
+```
+
+#### Based on this the choice is the model with just "y" (formula = z ~ y) instead of "x" and its quadratic term. 

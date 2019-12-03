@@ -1,0 +1,423 @@
+---
+title: "HDS Exercise set 4"
+author: "Shabbeer Hassan"
+output:
+  pdf_document: 
+     latex_engine: xelatex
+theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(29)
+#devtools::install_github('yihui/tinytex')
+options(tinytex.verbose = TRUE)
+```
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 30px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 22px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 20px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+h4 { /* Header 4 */
+  font-size: 14px;
+  font-family: "Times New Roman", Times, serif;
+  color: Black;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+### Problem 1 -- Solution
+
+
+```{r echo=T}
+
+# Libraries
+library(glmnet)
+library(caret)
+library(plotmo)
+library(car)
+library(tidyverse)
+library(ggplot2)
+library(MASS)
+library(data.table)
+library(dplyr)
+
+tr.ind <- read.csv("E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.3_tr.txt", sep=" ")
+
+# Train & Test dataset
+data(Boston)
+train <- Boston[tr.ind$X1,]
+test <- Boston[-tr.ind$X1,]
+
+# Predictor variables
+x <- model.matrix(medv~., train)[,-1]
+
+# Outcome variable
+y <- train$medv
+```
+
+
+
+(a)
+
+```{r echo=T}
+
+# Finding the best lambda using cross-validation
+cv_glmnet <- cv.glmnet(x, y, alpha = 0)
+
+c(cv_glmnet$lambda.min, cv_glmnet$lambda.1se)
+round(log(c(cv_glmnet$lambda.min, cv_glmnet$lambda.1se)), 2)
+
+plot(cv_glmnet) # PLotting model
+
+```
+
+####  We have seen previously that traditional model selection methodsare often unstable and have low prediction accuracy, especially for high-dimensional data which often include many correlated predictor variables. For analyzing these type of data, penalized regression methods such as LASSO selection is much better as they can produce more stable models with higher prediction accuracy as evidenced by our ability to choose lamda which can minimize the regularized loss function, leading to minimizing multicollinearity issues
+
+####  The lambda.min option refers to value of λ at the lowest CV error. The error at this value of λ is the average of the errors over the k folds and hence this estimate of the error is uncertain. The lambda.1se represents the value of λ in the search that was simpler than the best model (lambda.min), but which has error within 1 standard error of the best model. 
+#### In other words, using the value of lambda.1se as the selected value for λ results in a model that is slightly simpler than the best model but which cannot be distinguished from the best model in terms of error given the uncertainty in the k-fold CV estimate of the error of the best model. 
+#### Hence, if we use lambda.min, we might get the best model that may be too complex and slightly overfitted. BUt lambda.1se gives us the simplest model that has comparable error to the best model given the uncertainty. 
+
+
+
+(b)
+
+```{r echo=T}
+
+# Running glmnet
+fit <- glmnet(x, y, family = "gaussian", alpha = 1)
+
+# PLotting coef vs log(lamda)
+plot_glmnet(fit, xvar = "lambda", label = TRUE)
+plot_glmnet(fit, xvar = "dev", label = TRUE)
+
+# Actual coef from above model at some tuning parameter
+coef(fit, s = 0.1) 
+
+# Run lm
+fit_lm <- lm(medv~., train)
+summary(fit_lm)
+vif(fit_lm)
+```
+
+#### We see that age and indus have been shrinked to zero and the ones remaining are included in the model. In lm(), we see that lstat, dis, rm and ptratio are amongst the most highly signififcant variables. However, in glmnet() we see that "dis" is not to be seen at all despite having 5.56e-09 p-value.
+
+
+(c)
+
+```{r echo=T}
+
+Boston$chas<-as.numeric(Boston$chas)
+
+#Standardize covariates before fitting
+Boston.X.std<- scale(dplyr::select(Boston,-medv))
+X.train<- as.matrix(Boston.X.std)[tr.ind$X1,]
+X.test<-  as.matrix(Boston.X.std)[-tr.ind$X1,]
+Y.train<- Boston[tr.ind$X1, "medv"]
+Y.test<- Boston[-tr.ind$X1, "medv"]
+
+fit_std<- glmnet(x=X.train, y=Y.train, family = "gaussian", alpha = 1)
+plot_glmnet(fit_std, xvar = "lambda", label=TRUE)
+```
+
+
+#### Lasso regression puts constraints on the size of the coefficients associated to each variable. However, this value will depend on the magnitude of each variable. Hence the need to center and reduce, or standardize, the variables. The result of centering the variables means that there is no longer an intercept.We see more variables pop in the selected variables in glmnet() model, and due to this centering we can rank the coefficient importance by the relative magnitude of post-shrinkage coefficient estimates.
+
+
+
+
+(d)
+
+```{r echo=T}
+
+# Ridge Reg
+
+# Cross Validation to find lamda.min
+cv1<- cv.glmnet(x=X.train, y=Y.train, family = "gaussian", alpha = 0, nfolds = 10)
+plot(cv1)
+
+# Predictions
+pred1.min<- predict(fit_std, newx = X.test, s = cv1$lambda.min)
+
+# MSPE (prediction error)
+mean((Y.test-pred1.min)^2)
+
+# Deviance explained after standardization
+plot(cv1, xvar = "dev", label = TRUE)
+
+# Standardized vars
+rsq = 1 - cv1$cvm/var(Y.train)
+plot(cv1$lambda,rsq)
+
+# Non-standardized vars
+rsq_old = 1 - cv_glmnet$cvm/var(y)
+plot(cv_glmnet$lambda,rsq_old)
+
+```
+
+#### Variance explained is around 70% with standarized variables compared to around 60% or lesser with original ones. 
+
+
+
+
+
+### Problem 2 -- Solution
+
+(e)
+
+```{r echo=T}
+
+# LASSO 
+
+library(coefplot)
+
+# Cross Validation to find lamda.min
+cv2<- cv.glmnet(x=X.train, y=Y.train, family = "gaussian", alpha = 1, nfolds = 10)
+plot(cv2)
+
+# Predictions
+pred2.1se<- predict(fit_std, newx = X.test, s=cv2$lambda.1se)
+
+# MSPE (prediction error)
+mean((Y.test-pred2.1se)^2)
+```
+
+#### The MSE is smaller in lamda.min model than lamda.1se
+
+
+(f). 
+
+```{r echo=T}
+
+# Run lm
+fit_lm <- lm(medv~., train)
+mse1 <- mean((test$medv - predict.lm(fit_lm, test)) ^ 2)
+mse1
+
+# Using lambda.min (Ridge)
+pred1<- predict(fit_std, newx = X.test, s=cv1$lambda.min)
+mse2 <- mean((Y.test-pred1)^2)
+mse2
+
+# Using lambda.1se (LASSO)
+pred2<- predict(fit_std, newx = X.test, s=cv2$lambda.1se)
+mse3 <- mean((Y.test-pred2)^2)
+mse3
+```
+
+#### LM has lowest mse, followed by ridge and then LASSO 
+
+
+(g).
+
+```{r echo=T}
+
+# Using lamda.min (ridge)
+cv1<- cv.glmnet(x=X.train, y=Y.train, family = "gaussian", alpha = 0, nfolds = 10) # find lambda
+lambda_min <- glmnet(x=X.train, y=Y.train, alpha = 0, lambda= cv1$lambda.min) # do ridge reg
+coef_min <- data.frame(as.matrix(coef(lambda_min, s = "lambda_min")))
+
+# Using lamda.1se (LASSO)
+cv2<- cv.glmnet(x=X.train, y=Y.train, family = "gaussian", alpha = 1, nfolds = 10) # find lambda
+lambda_1se <- glmnet(x=X.train, y=Y.train, alpha = 1, lambda = cv2$lambda.1se) # do LASSO
+coef_1se <- data.frame(as.matrix(coef(lambda_1se, s = "lambda.1se")))
+  
+# LM
+std_data <- data.frame(cbind(X.train, Y.train))
+fit_lm2 <- lm(Y.train~., std_data)
+coef_lm <- fit_lm2$coefficients # from before
+
+# Coefficient table
+coef_tab <- data.frame(ridge = coef_min, lasso = coef_1se, linear = coef_lm) %>% rename(ridge = X1, lasso = X1.1)
+coef_tab
+```
+
+
+
+
+
+
+
+### Problem 3 -- Solution
+
+
+(a).
+
+```{r echo=T}
+
+new_dat <- read.csv("E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 4/HDS_ex4_n300p240.txt", sep=" ")
+
+# Train & Test dataset
+train <- new_dat[which(new_dat$train=='1'), ]
+test <- new_dat[which(new_dat$train=='0'), ]
+
+#Standardize covariates before fitting
+train_std <- scale(dplyr::select(train,-c(y1, y2, train)))
+test_std <- scale(dplyr::select(test,-c(y1, y2, train)))
+
+# Outcome vars
+Y1.train<- train$y1
+Y2.train<- train$y2
+Y1.test<- train$y1
+Y2.test<- train$y2
+Y.test<- Boston[-tr.ind$X1, "medv"]
+
+# Using lamda.min (ridge)
+cv.y1_ridge <- cv.glmnet(x=train_std, y=Y1.train, family = "gaussian", alpha = 0, nfolds = 10) # find lambda
+y1_ridge <- glmnet(x=train_std, y=Y1.train, alpha = 0, lambda= cv.y1_ridge$lambda.1se) # do ridge reg
+plot(cv.y1_ridge) # CV plot
+plot_glmnet(y1_ridge, xvar = "lambda", label=TRUE) # Coef plot
+
+cv.y2_ridge <- cv.glmnet(x=train_std, y=Y2.train, family = "gaussian", alpha = 0, nfolds = 10) # find lambda
+y2_ridge <- glmnet(x=train_std, y=Y2.train, alpha = 0, lambda= cv.y2_ridge$lambda.1se) # do ridge reg
+plot(cv.y2_ridge) # CV plot
+plot_glmnet(y2_ridge, xvar = "lambda", label=TRUE) # Coef plot
+
+# Using lamda.1se (LASSO)
+cv.y1_lasso <- cv.glmnet(x=train_std, y=Y1.train, family = "gaussian", alpha = 1, nfolds = 10) # find lambda
+y1_lasso <- glmnet(x=train_std, y=Y1.train, alpha = 0, lambda= cv.y1_lasso$lambda.1se) # do ridge reg
+plot(cv.y1_lasso) # CV plot
+plot_glmnet(y1_lasso, xvar = "lambda", label=TRUE) # Coef plot
+
+cv.y2_ridge <- cv.glmnet(x=train_std, y=Y2.train, family = "gaussian", alpha = 0, nfolds = 10) # find lambda
+y2_ridge <- glmnet(x=train_std, y=Y2.train, alpha = 0, lambda= cv.y2_ridge$lambda.1se) # do ridge reg
+plot(cv.y2_ridge) # CV plot
+plot_glmnet(y2_ridge, xvar = "lambda", label=TRUE) # Coef plot
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Junk COde
+imp <- as.data.frame(varImp(cv_glmnet))
+imp <- data.frame(overall = imp$Overall,
+           names   = rownames(imp))
+imp[order(imp$overall,decreasing = T),]
+
+varImp <- function(object, lambda = NULL, ...) {
+
+  ## skipping a few lines
+
+  beta <- predict(object, s = lambda, type = "coef")
+  if(is.list(beta)) {
+    out <- do.call("cbind", lapply(beta, function(x) x[,1]))
+    out <- as.data.frame(out)
+  } else out <- data.frame(Overall = beta[,1])
+  out <- abs(out[rownames(out) != "(Intercept)",,drop = FALSE])
+  out
+}
+
+#  Compare the models and see which variables agree
+var_step = names(fit_lm$coefficients)[-1]
+var_lasso = colnames(train)[which(coef(fit, s = cv.lasso$lambda.min)!=0)-1]
+intersect(var_step,var_lasso)

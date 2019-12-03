@@ -1,0 +1,156 @@
+---
+title: "HDS 6.1 Breast cancer metastasis example"
+author: "Matti Pirinen, University of Helsinki"
+date: "21-11-2019"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Let's look at a study of breast cancer metastasis published by 
+Van't Veer et al. in 2002. Data (15 MB) are downloaded from 
+http://web.as.uky.edu/statistics/users/pbreheny/603/
+
+In the study, biological samples were obtained from the
+tumors of women with breast cancer. 
+These samples were scanned with a microarray, 
+that measures the expression of 10000s of genes simultaneously
+(i.e how much of the gene product is being
+produced by the cells in the sample).
+The patients were followed up to see how long it took for
+the cancer to metastasize (spread elsewhere, which is bad).
+Clinically, the goal is to identify patients with poor prognosis
+in order to administer more aggressive follow-up treatment for them.
+Scientifically, knowledge of the genes related to worse outcome can
+help understand the disease better, and to develop some therapeutics in the future.
+
+```{r}
+set.seed(21)
+D = read.table("vantveer.txt", header = T) #add your path here
+dim(D) #rows patients, cols outcome + gene expressions
+anyNA(D)
+y = as.numeric(D[,1]) #survival time
+X = as.matrix(D[,2:ncol(D)]) #gene expression measurements
+rm(D)
+n = length(y)
+p = ncol(X)
+summary(y)
+summary(apply(X, 2, mean)) #not mean centered
+summary(apply(X, 2, sd)) #not standardized
+```
+
+A filtering step could be to remove predictors that have small 
+variance, because these are less likely to be informative in statistical sense.
+Of course, any gene could be important biologically even if it varies only a
+little between individuals, but we have less statistical power to find 
+such effects, and therefore, if we needed to filter out predictors, 
+these could be candidates. Our methods are efficient enough
+so, for now, let's just keep all in and standardize the columns.
+
+```{r}
+X = scale(X) #now mean=0 var=1 for each column
+y = y - mean(y) #mean center, but do not scale to keep the time interpretation.
+#we could now ignore the intercept because everything is mean centered
+```
+
+Let's first do a quick version of ordinary least squares univariately 
+for each gene $j$ using the model $y = x_j \beta_j + \varepsilon$. 
+Now we do not want to do a for-loop to fit `lm()` for 24000+ times
+but we use formulae from Exercise 1.5.
+
+After standardization within the sample $\pmb x_j^T \pmb x_j=n-1$ 
+for each column $j$ and so
+$$\widehat{\beta}_j =\frac{\pmb x_j^T \pmb y}{\pmb x_j^T \pmb x_j} = \frac{\pmb x_j^T \pmb y}{n-1}.$$
+Thus the vector 
+$\widehat{\pmb \beta}^{(UNI)} = \pmb X^T \pmb y/(n-1)$ has the 
+univariate least squares estimates, and this can be computed by a single
+matrix-by-vector operation, so is as quick as it can get.
+
+Similarly, we can compute the univariate estimate of $\sigma^2_j$ for each
+gene as 
+$$\widehat{\sigma^2}_j = \frac{1}{n-2} \left (\pmb y- \pmb x_j \widehat{\beta}_j\right)^T \left(\pmb y- \pmb x_j \widehat{\beta}_j\right)$$
+
+and then we have the standard erros as 
+$$s_j = \sqrt{\frac{\widehat{\sigma^2}_j}{(n-1)}}.$$
+
+```{r}
+beta.uni = as.vector((t(X)%*%y)/(n-1))
+sigma2.uni = colSums(( y - t( t(X)*beta.uni) )^2)/(n-2) #this is sigma2 formula above written in R
+se = sqrt(sigma2.uni/(n-1))
+#Now we have fit 24000+ linear models. 
+#Check an arbitrary column against lm() output:
+i = 10625
+summary(lm(y ~ X[,i]))$coefficients[2,1:2]
+c(beta.uni[i], se[i])
+#OK.
+pval = pchisq( (beta.uni/se)^2, df = 1, lower = F)
+qqplot(-log10(ppoints(p)), -log10(pval), pch = 4) #huge deviations
+abline(0,1)
+summary(pval)
+```
+
+
+Let's fit LASSO model to the data.
+```{r, warning=FALSE }
+library(glmnet)
+cv.lasso = cv.glmnet(X, y, alpha = 1) #takes < 5 seconds even with p>20000 
+plot(cv.lasso)
+plot(cv.lasso$glmnet.fit, xvar = "lambda")
+abline( v = log(cv.lasso$lambda.min), lty = 2 )
+abline( v = log(cv.lasso$lambda.1se), lty = 2 )
+```
+
+LASSO seems to choose only 12 predictors at `lambda.min`.
+Let's look at their statistics.
+
+```{r}
+lasso.var = as.matrix(coef(cv.lasso, s = "lambda.min"))
+names(which(abs(lasso.var[,1]) > 1e-10))
+lasso.ind = which(abs(lasso.var[,1]) > 1e-10) - 1 #indexes, removing intercept index by -1
+cbind(beta.uni[lasso.ind], se[lasso.ind], pval[lasso.ind])
+sum(pval < 1e-7)
+```
+
+We see that P-values of variables chosen by LASSO are small in general
+(< 1e-5) but that there are many genes with small P-values that 
+LASSO has dropped (e.g. 13 genes had P-value < 1e-7 and there are only
+6 such in the list). So LASSO is not just about sorting P-values.
+
+Can we also fit ridge regression to this p > 24000 data set 
+even when it does not produce sparsity similar to LASSO?
+
+```{r, eval = T}
+cv.ridge = cv.glmnet(X, y, alpha = 0) #takes only ~ 20 seconds even with p > 24000 
+plot(cv.ridge)
+plot(cv.ridge$glmnet.fit, xvar = "lambda")
+abline( v = log(cv.ridge$lambda.min), lty = 2 )
+abline( v = log(cv.ridge$lambda.1se), lty = 2 )
+```
+
+Cross-validated MSEs at minimum seem similar between ridge regression (RR)
+and LASSO. 
+Note also that $\lambda$ is large ($>\exp(9)\approx 8100$) 
+so RR heavily penalizes the linear model,
+as it should when $p >> n$. 
+
+A big benefit of LASSO is its small number of predictors,
+here only 12 compared to 24188 that are used by RR. 
+If we can build two prediction models that are almost as good, 
+and the first one has 12 predictors and the second has 
+24188 predictors, the first one is more practical in many ways.
+
+What about trying out some elastic net model that is a compromise between the two?
+```{r}
+cv.enet = cv.glmnet(X, y, alpha = 0.8) #takes only ~ 5 seconds even with p > 24000 
+plot(cv.enet)
+plot(cv.enet$glmnet.fit, xvar = "lambda")
+abline( v = log(cv.enet$lambda.min), lty = 2 )
+abline( v = log(cv.enet$lambda.1se), lty = 2 )
+```
+
+Elastic net has a few more predictors than LASSO but still
+produces very sparse model compared to original $p$.
+CV'd MSEs seem similar between the three methods.
+

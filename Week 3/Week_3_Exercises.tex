@@ -1,0 +1,2026 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={HDS Exercise set 3},
+            pdfauthor={Shabbeer Hassan},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{HDS Exercise set 3}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Shabbeer Hassan}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+    \date{}
+    \predate{}\postdate{}
+  
+
+\begin{document}
+\maketitle
+
+\hypertarget{problem-1-solution}{%
+\subsubsection{Problem 1 -- Solution}\label{problem-1-solution}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## -- Attaching packages ----------------------------------------------------------------------------------------------------------- tidyverse 1.2.1 --
+\end{verbatim}
+
+\begin{verbatim}
+## v ggplot2 3.2.1     v purrr   0.3.2
+## v tibble  2.1.3     v dplyr   0.8.3
+## v tidyr   1.0.0     v stringr 1.4.0
+## v readr   1.3.1     v forcats 0.4.0
+\end{verbatim}
+
+\begin{verbatim}
+## -- Conflicts -------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(ggplot2)}
+
+\CommentTok{# Dataset}
+\NormalTok{HDS_ex3 <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.txt"}\NormalTok{, }\DataTypeTok{sep=}\StringTok{" "}\NormalTok{)}
+
+\NormalTok{train <-}\StringTok{ }\NormalTok{HDS_ex3[ }\KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{10}\NormalTok{), ]}
+\NormalTok{test <-}\StringTok{ }\NormalTok{HDS_ex3[ }\OperatorTok{-}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{10}\NormalTok{), ]}
+
+\CommentTok{### Models using TRAIN data}
+
+\CommentTok{# 1st order LM}
+\NormalTok{y1_train <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(y }\OperatorTok{~}\StringTok{ }\NormalTok{x, }\DataTypeTok{data =}\NormalTok{ train)}
+\NormalTok{sm_y1_train <-}\StringTok{ }\KeywordTok{summary}\NormalTok{( y1_train )}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{fitted}\NormalTok{(y1_train), }\KeywordTok{residuals}\NormalTok{(y1_train)) }\CommentTok{# Fitted vs Residuals}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Week_3_Exercises_files/figure-latex/unnamed-chunk-2-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 2nd order LM}
+\NormalTok{y2_train <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(y }\OperatorTok{~}\StringTok{ }\NormalTok{x }\OperatorTok{+}\StringTok{ }\KeywordTok{poly}\NormalTok{(x, }\DecValTok{2}\NormalTok{, }\DataTypeTok{raw =}\NormalTok{ T), }\DataTypeTok{data =}\NormalTok{ train)}
+\NormalTok{sm_y2_train <-}\StringTok{ }\KeywordTok{summary}\NormalTok{( y2_train )}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{fitted}\NormalTok{(y2_train), }\KeywordTok{residuals}\NormalTok{(y2_train)) }\CommentTok{# Fitted vs Residuals}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Week_3_Exercises_files/figure-latex/unnamed-chunk-2-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 9th order LM}
+\NormalTok{y9_train <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(y }\OperatorTok{~}\StringTok{ }\NormalTok{x }\OperatorTok{+}\StringTok{ }\KeywordTok{poly}\NormalTok{(x, }\DecValTok{9}\NormalTok{, }\DataTypeTok{raw =}\NormalTok{ T), }\DataTypeTok{data =}\NormalTok{ train)}
+\NormalTok{sm_y9_train <-}\StringTok{ }\KeywordTok{summary}\NormalTok{( y9_train )}
+\KeywordTok{plot}\NormalTok{( }\KeywordTok{fitted}\NormalTok{(y9_train), }\KeywordTok{residuals}\NormalTok{(y9_train) ) }\CommentTok{# Fitted vs Residuals}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Week_3_Exercises_files/figure-latex/unnamed-chunk-2-3.pdf}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{1}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{##### Plot training data for all models}
+
+\CommentTok{# Adding predicted values to a dataset}
+\NormalTok{pred_train <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(}\KeywordTok{cbind}\NormalTok{( train}\OperatorTok{$}\NormalTok{x,}
+                                   \KeywordTok{predict}\NormalTok{( y1_train ), }
+                                   \KeywordTok{predict}\NormalTok{( y2_train ), }
+                                   \KeywordTok{predict}\NormalTok{( y9_train ) ))}
+\KeywordTok{colnames}\NormalTok{( pred_train ) <-}\StringTok{ }\KeywordTok{c}\NormalTok{( }\StringTok{"x"}\NormalTok{, }\StringTok{"1st_order_LM"}\NormalTok{, }\StringTok{"2nd_order_LM"}\NormalTok{, }\StringTok{"9th_order_LM"}\NormalTok{)}
+
+\CommentTok{# Convert from wide to long}
+\NormalTok{pred_train.df <-}\StringTok{ }\NormalTok{reshape2}\OperatorTok{::}\KeywordTok{melt}\NormalTok{(pred_train, }
+                      \DataTypeTok{id =} \StringTok{"x"}\NormalTok{)}
+
+\CommentTok{# Plotting }
+\NormalTok{pred_train }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{gather}\NormalTok{(key,value, }\StringTok{"1st_order_LM"}\NormalTok{, }\StringTok{"2nd_order_LM"}\NormalTok{, }\StringTok{"9th_order_LM"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{x, }\DataTypeTok{y=}\NormalTok{value, }\DataTypeTok{colour=}\NormalTok{key)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\CommentTok{#theme with white background}
+\StringTok{     }\KeywordTok{theme_bw}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\CommentTok{#eliminates background, gridlines, and chart border}
+\StringTok{     }\KeywordTok{theme}\NormalTok{(}
+       \DataTypeTok{plot.background =} \KeywordTok{element_blank}\NormalTok{()}
+\NormalTok{      ,}\DataTypeTok{panel.grid.major =} \KeywordTok{element_blank}\NormalTok{()}
+\NormalTok{      ,}\DataTypeTok{panel.grid.minor =} \KeywordTok{element_blank}\NormalTok{()}
+\NormalTok{      ) }\OperatorTok{+}
+\StringTok{  }\CommentTok{#draws x and y axis line}
+\StringTok{     }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.line =} \KeywordTok{element_line}\NormalTok{(}\DataTypeTok{color =} \StringTok{'black'}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{( }\StringTok{"X"}\NormalTok{, }\DataTypeTok{limits =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.1}\NormalTok{, }\DecValTok{1}\NormalTok{) ) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{( }\StringTok{"Y"}\NormalTok{, }\DataTypeTok{limits =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.7}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title =} \StringTok{"Predicted values from different order linear models"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Week_3_Exercises_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{2}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{### Models using test }
+
+\CommentTok{# 1st order LM}
+\NormalTok{y1_test <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(y }\OperatorTok{~}\StringTok{ }\NormalTok{x, }\DataTypeTok{data =}\NormalTok{ test)}
+\NormalTok{sm_y1_test <-}\StringTok{ }\KeywordTok{summary}\NormalTok{( y1_test )}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{fitted}\NormalTok{(y1_test), }\KeywordTok{residuals}\NormalTok{(y1_test)) }\CommentTok{# Fitted vs Residuals}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Week_3_Exercises_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 2nd order LM}
+\NormalTok{y2_test <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(y }\OperatorTok{~}\StringTok{ }\NormalTok{x }\OperatorTok{+}\StringTok{ }\KeywordTok{poly}\NormalTok{(x, }\DecValTok{2}\NormalTok{, }\DataTypeTok{raw =}\NormalTok{ T), }\DataTypeTok{data =}\NormalTok{ test)}
+\NormalTok{sm_y2_test <-}\StringTok{ }\KeywordTok{summary}\NormalTok{( y2_test )}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{fitted}\NormalTok{(y2_test), }\KeywordTok{residuals}\NormalTok{(y2_test)) }\CommentTok{# Fitted vs Residuals}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Week_3_Exercises_files/figure-latex/unnamed-chunk-4-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 9th order LM}
+\NormalTok{y9_test <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(y }\OperatorTok{~}\StringTok{ }\NormalTok{x }\OperatorTok{+}\StringTok{ }\KeywordTok{poly}\NormalTok{(x, }\DecValTok{9}\NormalTok{, }\DataTypeTok{raw =}\NormalTok{ T), }\DataTypeTok{data =}\NormalTok{ test)}
+\NormalTok{sm_y9_test <-}\StringTok{ }\KeywordTok{summary}\NormalTok{( y9_test )}
+\KeywordTok{plot}\NormalTok{( }\KeywordTok{fitted}\NormalTok{(y9_test), }\KeywordTok{residuals}\NormalTok{(y9_test) ) }\CommentTok{# Fitted vs Residuals}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Week_3_Exercises_files/figure-latex/unnamed-chunk-4-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# MSE function}
+\NormalTok{mse <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(sm) }
+    \KeywordTok{mean}\NormalTok{(sm}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+
+\CommentTok{#mse <- function(sm) \{sum( sm$residuals^2 )/sm$df.residual\}}
+
+\CommentTok{# Obtain }\AlertTok{TEST}\CommentTok{ MSE's}
+\NormalTok{y1_test_mse <-}\StringTok{ }\KeywordTok{mse}\NormalTok{(sm_y1_test)}
+\NormalTok{y2_test_mse <-}\StringTok{ }\KeywordTok{mse}\NormalTok{(sm_y2_test)}
+\NormalTok{y9_test_mse <-}\StringTok{ }\KeywordTok{mse}\NormalTok{(sm_y9_test)}
+\NormalTok{test_mse.df <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(}\KeywordTok{cbind}\NormalTok{( }\StringTok{"Test_MSE"}\NormalTok{, y1_test_mse, y2_test_mse, y9_test_mse ))}
+\KeywordTok{colnames}\NormalTok{(test_mse.df) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Data"}\NormalTok{, }\StringTok{"1st_order"}\NormalTok{, }\StringTok{"2nd order"}\NormalTok{, }\StringTok{"9th_order"}\NormalTok{)}
+
+\CommentTok{# Obtain TRAIN MSE's}
+\NormalTok{y1_train_mse <-}\StringTok{ }\KeywordTok{mse}\NormalTok{(sm_y2_train)}
+\NormalTok{y2_train_mse <-}\StringTok{ }\KeywordTok{mse}\NormalTok{(sm_y2_train)}
+\NormalTok{y9_train_mse <-}\StringTok{ }\KeywordTok{mse}\NormalTok{(sm_y9_train)}
+\NormalTok{train_mse.df <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(}\KeywordTok{cbind}\NormalTok{( }\StringTok{"Train_MSE"}\NormalTok{, y1_train_mse, y2_train_mse, y9_train_mse ))}
+\KeywordTok{colnames}\NormalTok{(train_mse.df) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Data"}\NormalTok{, }\StringTok{"1st_order"}\NormalTok{, }\StringTok{"2nd order"}\NormalTok{, }\StringTok{"9th_order"}\NormalTok{)}
+
+\CommentTok{# Get a df to showcase diff bet train and test MSE}
+\NormalTok{diff_mse <-}\StringTok{ }\KeywordTok{rbind}\NormalTok{(test_mse.df, train_mse.df)}
+\NormalTok{diff_mse}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##        Data            1st_order            2nd order            9th_order
+## 1  Test_MSE   0.0083714171301726  0.00273715162189185  0.00256754067814762
+## 2 Train_MSE 0.000838066404415258 0.000838066404415258 2.09569420646987e-05
+\end{verbatim}
+
+\hypertarget{training-mses-for-the-1st-2nd-and-9th-order-models-are-higher-than-the-test-mses.-in-fact-as-the-order-of-model-increases-the-mse-of-test-dataset-remains-similar-but-the-training-set-mses-decrease.}{%
+\paragraph{Training MSE's for the 1st, 2nd and 9th order models are
+higher than the test MSE's. In fact, as the order of model increases,
+the MSE of test dataset remains similar but the training set MSE's
+decrease.}\label{training-mses-for-the-1st-2nd-and-9th-order-models-are-higher-than-the-test-mses.-in-fact-as-the-order-of-model-increases-the-mse-of-test-dataset-remains-similar-but-the-training-set-mses-decrease.}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{3}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{### Plot predicted x-values against actual x from train data}
+
+\CommentTok{## Prediction for each models}
+\NormalTok{predict_y1 <-}\StringTok{ }\KeywordTok{predict}\NormalTok{(y1_train, }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ test}\OperatorTok{$}\NormalTok{x), }
+                      \DataTypeTok{interval =} \StringTok{'confidence'}\NormalTok{,}
+                      \DataTypeTok{level =} \FloatTok{0.99}\NormalTok{)}
+
+\NormalTok{predict_y2 <-}\StringTok{ }\KeywordTok{predict}\NormalTok{(y2_train, }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ test}\OperatorTok{$}\NormalTok{x), }
+                      \DataTypeTok{interval =} \StringTok{'confidence'}\NormalTok{,}
+                      \DataTypeTok{level =} \FloatTok{0.99}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in predict.lm(y2_train, data.frame(x = test$x), interval =
+## "confidence", : prediction from a rank-deficient fit may be misleading
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predict_y9 <-}\StringTok{ }\KeywordTok{predict}\NormalTok{(y9_train, }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ test}\OperatorTok{$}\NormalTok{x), }
+                      \DataTypeTok{interval =} \StringTok{'confidence'}\NormalTok{,}
+                      \DataTypeTok{level =} \FloatTok{0.99}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in predict.lm(y9_train, data.frame(x = test$x), interval =
+## "confidence", : prediction from a rank-deficient fit may be misleading
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Adding all predicted values in a df}
+\NormalTok{predicted_df <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(}\KeywordTok{cbind}\NormalTok{( test}\OperatorTok{$}\NormalTok{x, predict_y1[,}\DecValTok{1}\NormalTok{], predict_y2[,}\DecValTok{1}\NormalTok{], predict_y9[,}\DecValTok{1}\NormalTok{] ))}
+\KeywordTok{colnames}\NormalTok{(predicted_df) <-}\StringTok{ }\KeywordTok{c}\NormalTok{( }\StringTok{"x"}\NormalTok{, }\StringTok{"1st_order_LM"}\NormalTok{, }\StringTok{"2nd_order_LM"}\NormalTok{, }\StringTok{"9th_order_LM"}\NormalTok{)}
+
+
+\CommentTok{# Convert from wide to long}
+\NormalTok{predicted_test.df <-}\StringTok{ }\NormalTok{reshape2}\OperatorTok{::}\KeywordTok{melt}\NormalTok{(predicted_df, }
+                      \DataTypeTok{id =} \StringTok{"x"}\NormalTok{)}
+
+\CommentTok{# Plotting }
+\NormalTok{predicted_df }\OperatorTok{%>%}
+\StringTok{     }\KeywordTok{gather}\NormalTok{(key,value, }\StringTok{"1st_order_LM"}\NormalTok{, }\StringTok{"2nd_order_LM"}\NormalTok{, }\StringTok{"9th_order_LM"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{x, }\DataTypeTok{y=}\NormalTok{value, }\DataTypeTok{colour=}\NormalTok{key)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\CommentTok{#theme with white background}
+\StringTok{     }\KeywordTok{theme_bw}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\CommentTok{#eliminates background, gridlines, and chart border}
+\StringTok{     }\KeywordTok{theme}\NormalTok{(}
+       \DataTypeTok{plot.background =} \KeywordTok{element_blank}\NormalTok{()}
+\NormalTok{      ,}\DataTypeTok{panel.grid.major =} \KeywordTok{element_blank}\NormalTok{()}
+\NormalTok{      ,}\DataTypeTok{panel.grid.minor =} \KeywordTok{element_blank}\NormalTok{()}
+\NormalTok{      ) }\OperatorTok{+}
+\StringTok{  }\CommentTok{#draws x and y axis line}
+\StringTok{     }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.line =} \KeywordTok{element_line}\NormalTok{(}\DataTypeTok{color =} \StringTok{'black'}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{( }\StringTok{"X"}\NormalTok{, }\DataTypeTok{limits =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{1.1}\NormalTok{) ) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{( }\StringTok{"Y"}\NormalTok{, }\DataTypeTok{limits =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{2.1}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title =} \StringTok{"Predicted values from different order linear models"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 18 rows containing missing values (geom_path).
+\end{verbatim}
+
+\includegraphics{Week_3_Exercises_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+\hypertarget{the-first-degree-model-is-reasonable-but-we-can-see-that-the-second-degree-model-fits-much-better.-the-ninth-degree-model-seem-rather-wild.}{%
+\paragraph{The first degree model is reasonable, but we can see that the
+second degree model fits much better. The ninth degree model seem rather
+wild.}\label{the-first-degree-model-is-reasonable-but-we-can-see-that-the-second-degree-model-fits-much-better.-the-ninth-degree-model-seem-rather-wild.}}
+
+(e).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Get truth "y" into predicted dataframe}
+\NormalTok{pred_truth.df <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{( }\KeywordTok{cbind}\NormalTok{(test}\OperatorTok{$}\NormalTok{y, predicted_df) )}
+\KeywordTok{colnames}\NormalTok{(pred_truth.df) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"truth"}\NormalTok{, }\StringTok{"x"}\NormalTok{, }\StringTok{"1st_order_LM"}\NormalTok{, }\StringTok{"2nd_order_LM"}\NormalTok{, }\StringTok{"9th_order_LM"}\NormalTok{)}
+
+\CommentTok{## Bias-Variance tradeoff}
+\NormalTok{get_bias =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(estimate, truth) \{}
+  \KeywordTok{mean}\NormalTok{(estimate) }\OperatorTok{-}\StringTok{ }\NormalTok{truth}
+\NormalTok{\}}
+
+\NormalTok{get_var =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(estimate) \{}
+  \KeywordTok{mean}\NormalTok{((estimate }\OperatorTok{-}\StringTok{ }\KeywordTok{mean}\NormalTok{(estimate)) }\OperatorTok{^}\StringTok{ }\DecValTok{2}\NormalTok{)}
+\NormalTok{\}}
+
+\NormalTok{get_mse =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(truth, estimate) \{}
+  \KeywordTok{mean}\NormalTok{((estimate }\OperatorTok{-}\StringTok{ }\NormalTok{truth) }\OperatorTok{^}\StringTok{ }\DecValTok{2}\NormalTok{)}
+\NormalTok{\}}
+
+
+\CommentTok{# Bias from 3 models}
+\NormalTok{bias_1st <-}\StringTok{ }\KeywordTok{get_bias}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{1st_order_LM}\StringTok{`}\NormalTok{, pred_truth.df}\OperatorTok{$}\NormalTok{truth)}
+\NormalTok{bias_2nd <-}\StringTok{ }\KeywordTok{get_bias}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{2nd_order_LM}\StringTok{`}\NormalTok{, pred_truth.df}\OperatorTok{$}\NormalTok{truth)}
+\NormalTok{bias_9th <-}\StringTok{ }\KeywordTok{get_bias}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{9th_order_LM}\StringTok{`}\NormalTok{, pred_truth.df}\OperatorTok{$}\NormalTok{truth)}
+
+\NormalTok{bias_df <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{( }\KeywordTok{cbind}\NormalTok{(bias_1st, bias_2nd, bias_9th) )}
+\NormalTok{bias <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\KeywordTok{mean}\NormalTok{(bias_df}\OperatorTok{$}\NormalTok{bias_1st), }\KeywordTok{mean}\NormalTok{(bias_df}\OperatorTok{$}\NormalTok{bias_2nd), }\KeywordTok{mean}\NormalTok{(bias_df}\OperatorTok{$}\NormalTok{bias_9th))}
+
+\CommentTok{# Variance from 3 models}
+\NormalTok{var_1st <-}\StringTok{ }\KeywordTok{get_var}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{1st_order_LM}\StringTok{`}\NormalTok{)}
+\NormalTok{var_2nd <-}\StringTok{ }\KeywordTok{get_var}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{2nd_order_LM}\StringTok{`}\NormalTok{)}
+\NormalTok{var_9th <-}\StringTok{ }\KeywordTok{get_var}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{9th_order_LM}\StringTok{`}\NormalTok{)}
+
+\NormalTok{var <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{( }\KeywordTok{rbind}\NormalTok{(var_1st, var_2nd, var_9th) )}
+
+\CommentTok{# MSE from 3 models}
+\NormalTok{mse_1st <-}\StringTok{ }\KeywordTok{get_mse}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{1st_order_LM}\StringTok{`}\NormalTok{, pred_truth.df}\OperatorTok{$}\NormalTok{truth)}
+\NormalTok{mse_2nd <-}\StringTok{ }\KeywordTok{get_mse}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{2nd_order_LM}\StringTok{`}\NormalTok{, pred_truth.df}\OperatorTok{$}\NormalTok{truth)}
+\NormalTok{mse_9th <-}\StringTok{ }\KeywordTok{get_mse}\NormalTok{(pred_truth.df}\OperatorTok{$}\StringTok{`}\DataTypeTok{9th_order_LM}\StringTok{`}\NormalTok{, pred_truth.df}\OperatorTok{$}\NormalTok{truth)}
+
+\NormalTok{mse <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{( }\KeywordTok{rbind}\NormalTok{(mse_1st, mse_2nd, mse_9th) )}
+
+\CommentTok{# Summarize these above results in the following table}
+\NormalTok{results <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{ (}
+  \KeywordTok{cbind}\NormalTok{(}\DataTypeTok{poly_degree =} \KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{9}\NormalTok{),}
+        \KeywordTok{round}\NormalTok{(bias}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DecValTok{5}\NormalTok{),}
+        \KeywordTok{round}\NormalTok{(mse, }\DecValTok{5}\NormalTok{),}
+        \KeywordTok{round}\NormalTok{(var, }\DecValTok{5}\NormalTok{))}
+\NormalTok{)}
+\KeywordTok{colnames}\NormalTok{(results) =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Degree"}\NormalTok{, }\StringTok{"Mean Squared Error"}\NormalTok{, }\StringTok{"Bias Squared"}\NormalTok{, }\StringTok{"Variance"}\NormalTok{)}
+\KeywordTok{rownames}\NormalTok{(results) =}\StringTok{ }\OtherTok{NULL}
+\NormalTok{knitr}\OperatorTok{::}\KeywordTok{kable}\NormalTok{(results, }\DataTypeTok{booktabs =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{escape =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{align =} \StringTok{"c"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}cccc@{}}
+\toprule
+Degree & Mean Squared Error & Bias Squared & Variance\tabularnewline
+\midrule
+\endhead
+1 & 0.00006 & 0.01160 & 0.00158\tabularnewline
+2 & 0.00028 & 0.00305 & 0.00650\tabularnewline
+9 & 25.35862 & 270.84226 & 246.74820\tabularnewline
+\bottomrule
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Bias-Variance Tradeoff}
+\CommentTok{# Defined as, bias ^ 2 + variance == mse}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{we-see-that-the-bias-in-general-decreases-upon-considering-the-2nd-order-model-than-1st-one}{%
+\paragraph{We see that the Bias in general decreases upon considering
+the 2nd order model than 1st
+one}\label{we-see-that-the-bias-in-general-decreases-upon-considering-the-2nd-order-model-than-1st-one}}
+
+\hypertarget{we-see-that-the-2nd-order-model-gets-the-best-bias-variance-tradeoff-here}{%
+\subparagraph{We see that the 2nd order model gets the best
+bias-variance tradeoff
+here}\label{we-see-that-the-2nd-order-model-gets-the-best-bias-variance-tradeoff-here}}
+
+\hypertarget{problem-2-solution}{%
+\subsubsection{Problem 2 -- Solution}\label{problem-2-solution}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(MASS)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'MASS'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data}\NormalTok{(Boston)}
+
+\CommentTok{#Using all variables as predictors}
+
+\NormalTok{lm.fit <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(medv }\OperatorTok{~}\StringTok{ }\NormalTok{., Boston)}
+\KeywordTok{summary}\NormalTok{(lm.fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = medv ~ ., data = Boston)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -15.595  -2.730  -0.518   1.777  26.199 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  3.646e+01  5.103e+00   7.144 3.28e-12 ***
+## crim        -1.080e-01  3.286e-02  -3.287 0.001087 ** 
+## zn           4.642e-02  1.373e-02   3.382 0.000778 ***
+## indus        2.056e-02  6.150e-02   0.334 0.738288    
+## chas         2.687e+00  8.616e-01   3.118 0.001925 ** 
+## nox         -1.777e+01  3.820e+00  -4.651 4.25e-06 ***
+## rm           3.810e+00  4.179e-01   9.116  < 2e-16 ***
+## age          6.922e-04  1.321e-02   0.052 0.958229    
+## dis         -1.476e+00  1.995e-01  -7.398 6.01e-13 ***
+## rad          3.060e-01  6.635e-02   4.613 5.07e-06 ***
+## tax         -1.233e-02  3.760e-03  -3.280 0.001112 ** 
+## ptratio     -9.527e-01  1.308e-01  -7.283 1.31e-12 ***
+## black        9.312e-03  2.686e-03   3.467 0.000573 ***
+## lstat       -5.248e-01  5.072e-02 -10.347  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.745 on 492 degrees of freedom
+## Multiple R-squared:  0.7406, Adjusted R-squared:  0.7338 
+## F-statistic: 108.1 on 13 and 492 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{AIC}\NormalTok{(lm.fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3027.609
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{BIC}\NormalTok{(lm.fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3091.007
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Using all but age}
+\NormalTok{lm.fit1 <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(medv∼.}\OperatorTok{-}\NormalTok{age ,}\DataTypeTok{data=}\NormalTok{Boston )}
+\KeywordTok{summary}\NormalTok{ (lm.fit1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = medv ~ . - age, data = Boston)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -15.6054  -2.7313  -0.5188   1.7601  26.2243 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  36.436927   5.080119   7.172 2.72e-12 ***
+## crim         -0.108006   0.032832  -3.290 0.001075 ** 
+## zn            0.046334   0.013613   3.404 0.000719 ***
+## indus         0.020562   0.061433   0.335 0.737989    
+## chas          2.689026   0.859598   3.128 0.001863 ** 
+## nox         -17.713540   3.679308  -4.814 1.97e-06 ***
+## rm            3.814394   0.408480   9.338  < 2e-16 ***
+## dis          -1.478612   0.190611  -7.757 5.03e-14 ***
+## rad           0.305786   0.066089   4.627 4.75e-06 ***
+## tax          -0.012329   0.003755  -3.283 0.001099 ** 
+## ptratio      -0.952211   0.130294  -7.308 1.10e-12 ***
+## black         0.009321   0.002678   3.481 0.000544 ***
+## lstat        -0.523852   0.047625 -10.999  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.74 on 493 degrees of freedom
+## Multiple R-squared:  0.7406, Adjusted R-squared:  0.7343 
+## F-statistic: 117.3 on 12 and 493 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{AIC}\NormalTok{(lm.fit1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3025.611
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{BIC}\NormalTok{(lm.fit1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3084.783
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Using all but rm}
+\NormalTok{lm.fit2 <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(medv∼.}\OperatorTok{-}\NormalTok{rm ,}\DataTypeTok{data=}\NormalTok{Boston )}
+\KeywordTok{summary}\NormalTok{ (lm.fit2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = medv ~ . - rm, data = Boston)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -11.8415  -2.9471  -0.5922   1.7921  23.1236 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  69.467163   3.884501  17.883  < 2e-16 ***
+## crim         -0.115899   0.035484  -3.266 0.001166 ** 
+## zn            0.065917   0.014645   4.501 8.45e-06 ***
+## indus        -0.030978   0.066138  -0.468 0.639713    
+## chas          2.931577   0.930110   3.152 0.001721 ** 
+## nox         -21.021201   4.107510  -5.118 4.44e-07 ***
+## age           0.025592   0.013959   1.833 0.067351 .  
+## dis          -1.718414   0.213494  -8.049 6.29e-15 ***
+## rad           0.401657   0.070757   5.677 2.35e-08 ***
+## tax          -0.014881   0.004050  -3.674 0.000265 ***
+## ptratio      -1.142943   0.139493  -8.194 2.20e-15 ***
+## black         0.006747   0.002885   2.339 0.019752 *  
+## lstat        -0.772070   0.046280 -16.683  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 5.125 on 493 degrees of freedom
+## Multiple R-squared:  0.6968, Adjusted R-squared:  0.6895 
+## F-statistic: 94.43 on 12 and 493 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{AIC}\NormalTok{(lm.fit2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3104.581
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{BIC}\NormalTok{(lm.fit2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3163.753
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{### Comparing AIC & BIC}
+\KeywordTok{AIC}\NormalTok{(lm.fit, lm.fit1, lm.fit2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         df      AIC
+## lm.fit  15 3027.609
+## lm.fit1 14 3025.611
+## lm.fit2 14 3104.581
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{BIC}\NormalTok{(lm.fit, lm.fit1, lm.fit2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         df      BIC
+## lm.fit  15 3091.007
+## lm.fit1 14 3084.783
+## lm.fit2 14 3163.753
+\end{verbatim}
+
+\hypertarget{both-aic-and-bic-are-minimized-in-the-second-model-with-just-the-age-removed.}{%
+\paragraph{Both AIC and BIC are minimized in the second model with just
+the age
+removed.}\label{both-aic-and-bic-are-minimized-in-the-second-model-with-just-the-age-removed.}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{1}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Get log-lk values from AIC}
+\NormalTok{loglk_aic_full <-}\StringTok{ }\OperatorTok{-}\NormalTok{(}\KeywordTok{AIC}\NormalTok{(lm.fit) }\OperatorTok{-}\StringTok{ }\DecValTok{2}\OperatorTok{*}\DecValTok{15}\NormalTok{)}
+\NormalTok{loglk_aic_reduced <-}\StringTok{ }\OperatorTok{-}\NormalTok{(}\KeywordTok{AIC}\NormalTok{(lm.fit1) }\OperatorTok{-}\StringTok{ }\DecValTok{2}\OperatorTok{*}\DecValTok{14}\NormalTok{)}
+
+\NormalTok{loglk_aic_full}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -2997.609
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{loglk_aic_reduced}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -2997.611
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# The Likelihood ratio should be converted to -2*difference in log likelihoods: −2ln(Likelihood_reduced/Likelihood_full)}
+\CommentTok{# And the above can be written as:}
+\CommentTok{# −2ln(Likelihood_reduced)− −2ln(Likelihood_full)}
+\CommentTok{# LRT then should be approximately Chi-squared distributed with df equal to the number of fixed dimensions (difference in free parameters between the full and reduced model).}
+
+\CommentTok{# Likelihood-Ratio test (frequentist)}
+\NormalTok{Deviance <-}\StringTok{ }\NormalTok{loglk_aic_reduced }\OperatorTok{-}\StringTok{ }\NormalTok{loglk_aic_full }
+\NormalTok{Deviance}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -0.002824145
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Chisq.crit <-}\StringTok{ }\KeywordTok{qchisq}\NormalTok{(}\FloatTok{0.95}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{Chisq.crit}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3.841459
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# LRT}
+\NormalTok{Deviance }\OperatorTok{>=}\StringTok{ }\NormalTok{Chisq.crit   }\CommentTok{# perform the LRT}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] FALSE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# p-value}
+\DecValTok{1}\OperatorTok{-}\KeywordTok{pchisq}\NormalTok{(Deviance,}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1
+\end{verbatim}
+
+\hypertarget{the-p-values-for-let-calculation-based-on-aic-agrees-with-the-one-from-full-model-for-variable-age-0.95-vs-1}{%
+\paragraph{The p-values for LET calculation based on AIC agrees with the
+one from full model for variable age (0.95 vs
+1)}\label{the-p-values-for-let-calculation-based-on-aic-agrees-with-the-one-from-full-model-for-variable-age-0.95-vs-1}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{2}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Get log-lk values from BIC}
+\NormalTok{loglk_bic_full <-}\StringTok{ }\OperatorTok{-}\NormalTok{(}\KeywordTok{BIC}\NormalTok{(lm.fit) }\OperatorTok{-}\StringTok{ }\DecValTok{2}\OperatorTok{*}\DecValTok{15}\NormalTok{)}
+\NormalTok{loglk_bic_reduced <-}\StringTok{ }\OperatorTok{-}\NormalTok{(}\KeywordTok{BIC}\NormalTok{(lm.fit2) }\OperatorTok{-}\StringTok{ }\DecValTok{2}\OperatorTok{*}\DecValTok{14}\NormalTok{)}
+
+\NormalTok{loglk_bic_full}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -3061.007
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{loglk_bic_reduced}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -3135.753
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# The Likelihood ratio should be converted to -2*difference in log likelihoods: −2ln(Likelihood_reduced/Likelihood_full)}
+\CommentTok{# And the above can be written as:}
+\CommentTok{# −2ln(Likelihood_reduced)− −2ln(Likelihood_full)}
+\CommentTok{# LRT then should be approximately Chi-squared distributed with df equal to the number of fixed dimensions (difference in free parameters between the full and reduced model).}
+
+\CommentTok{# Likelihood-Ratio test (frequentist)}
+\NormalTok{Deviance <-}\StringTok{ }\NormalTok{loglk_bic_reduced }\OperatorTok{-}\StringTok{ }\NormalTok{loglk_bic_full }
+\NormalTok{Deviance}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -74.746
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Chisq.crit <-}\StringTok{ }\KeywordTok{qchisq}\NormalTok{(}\FloatTok{0.95}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{Chisq.crit}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3.841459
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# LRT}
+\NormalTok{Deviance }\OperatorTok{>=}\StringTok{ }\NormalTok{Chisq.crit   }\CommentTok{# perform the LRT}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] FALSE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# p-value}
+\DecValTok{1}\OperatorTok{-}\KeywordTok{pchisq}\NormalTok{(Deviance,}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1
+\end{verbatim}
+
+\hypertarget{problem-3-solution}{%
+\subsubsection{Problem 3 -- Solution}\label{problem-3-solution}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(MASS)}
+\KeywordTok{library}\NormalTok{(caret)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Loading required package: lattice
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'caret'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:purrr':
+## 
+##     lift
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data}\NormalTok{(Boston)}
+
+\NormalTok{tr.ind =}\StringTok{ }\DecValTok{1}\OperatorTok{:}\DecValTok{350}
+
+\CommentTok{# Train & Test dataset}
+\NormalTok{train <-}\StringTok{ }\NormalTok{Boston[tr.ind, ]}
+\NormalTok{test <-}\StringTok{ }\NormalTok{Boston[}\OperatorTok{-}\NormalTok{tr.ind, ]}
+
+\CommentTok{# Using all variables as predictors}
+\NormalTok{train_lm.fit <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(medv }\OperatorTok{~}\StringTok{ }\NormalTok{., train)}
+\NormalTok{test_lm.fit <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(medv }\OperatorTok{~}\StringTok{ }\NormalTok{., test)}
+
+\CommentTok{# MSE for train and test data based models}
+\NormalTok{mse_train <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( train_lm.fit}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{train_lm.fit}\OperatorTok{$}\NormalTok{df.residual}
+\NormalTok{mse_train}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 9.361612
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse_test <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( test_lm.fit}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{test_lm.fit}\OperatorTok{$}\NormalTok{df.residual}
+\NormalTok{mse_test}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 23.09557
+\end{verbatim}
+
+\hypertarget{the-test-data-model-has-a-higher-rmse-than-the-train-dataset.-this-could-be-an-indication-that-your-model-is-overfitting}{%
+\paragraph{The test data model has a higher RMSE than the train dataset.
+This could be an indication that your model is
+overfitting}\label{the-test-data-model-has-a-higher-rmse-than-the-train-dataset.-this-could-be-an-indication-that-your-model-is-overfitting}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{1}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 10-fold cross-validation (CV) within training data}
+\NormalTok{modelcv <-}\StringTok{ }\KeywordTok{train}\NormalTok{(}
+\NormalTok{  medv }\OperatorTok{~}\StringTok{ }\NormalTok{.,}
+  \DataTypeTok{data =}\NormalTok{ train,}
+  \DataTypeTok{method =} \StringTok{"lm"}\NormalTok{,}
+  \DataTypeTok{trControl =} \KeywordTok{trainControl}\NormalTok{(}
+    \DataTypeTok{method =} \StringTok{"cv"}\NormalTok{, }\DataTypeTok{number =} \DecValTok{10}
+\NormalTok{  )}
+\NormalTok{)}
+
+\NormalTok{RMSE_Modelcv <-}\StringTok{ }\NormalTok{modelcv}\OperatorTok{$}\NormalTok{results}\OperatorTok{$}\NormalTok{RMSE}
+\NormalTok{RMSE_Modelcv}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3.132821
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pcv <-}\StringTok{ }\KeywordTok{predict}\NormalTok{(modelcv, test)}
+\NormalTok{errorcv <-}\StringTok{ }\NormalTok{(pcv}\OperatorTok{-}\StringTok{ }\NormalTok{test}\OperatorTok{$}\NormalTok{medv)}
+\NormalTok{RMSE_NewDatacv <-}\StringTok{ }\KeywordTok{sqrt}\NormalTok{(}\KeywordTok{mean}\NormalTok{(errorcv}\OperatorTok{^}\DecValTok{2}\NormalTok{))}
+\NormalTok{RMSE_NewDatacv}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 23.36543
+\end{verbatim}
+
+\hypertarget{the-cross-validation-didnt-work-that-well-at-all.-it-could-still-be-the-case-of-overfitting-because-in-k-fold-cross-validation-the-dataset-is-divided-into-k-separate-parts.-the-training-process-is-repeated-k-times.-each-time-one-part-is-used-as-validation-data-and-the-rest-is-used-for-training-a-model.-and-in-this-we-arent-randomly-doing-that-which-increases-overfitting-error}{%
+\paragraph{THe cross validation didnt work that well at all. It could
+still be the case of overfitting because in K-fold cross validation, the
+dataset is divided into k separate parts. The training process is
+repeated k times. Each time, one part is used as validation data, and
+the rest is used for training a model. ANd in this, we arent randomly
+doing that which increases overfitting
+error}\label{the-cross-validation-didnt-work-that-well-at-all.-it-could-still-be-the-case-of-overfitting-because-in-k-fold-cross-validation-the-dataset-is-divided-into-k-separate-parts.-the-training-process-is-repeated-k-times.-each-time-one-part-is-used-as-validation-data-and-the-rest-is-used-for-training-a-model.-and-in-this-we-arent-randomly-doing-that-which-increases-overfitting-error}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{2}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tr.ind <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.3_tr.txt"}\NormalTok{, }\DataTypeTok{sep=}\StringTok{" "}\NormalTok{)}
+
+\CommentTok{# Train & Test dataset}
+
+\NormalTok{id <-}\StringTok{ }\KeywordTok{which}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(Boston) }\OperatorTok{%in%}\StringTok{ }\NormalTok{tr.ind}\OperatorTok{$}\NormalTok{V1 )}
+\NormalTok{train <-}\StringTok{ }\NormalTok{Boston[id, ]}
+\NormalTok{test <-}\StringTok{ }\NormalTok{Boston[}\OperatorTok{-}\NormalTok{id, ]}
+
+\CommentTok{# Using all variables as predictors}
+\NormalTok{train_lm.fit <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(medv }\OperatorTok{~}\StringTok{ }\NormalTok{., train)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...): 0 (non-NA) cases
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{test_lm.fit <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(medv }\OperatorTok{~}\StringTok{ }\NormalTok{., test)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...): 0 (non-NA) cases
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# MSE for train and test data based models}
+\NormalTok{mse_train <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( train_lm.fit}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{train_lm.fit}\OperatorTok{$}\NormalTok{df.residual}
+\NormalTok{mse_train}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 9.361612
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse_test <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( test_lm.fit}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{test_lm.fit}\OperatorTok{$}\NormalTok{df.residual}
+\NormalTok{mse_test}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 23.09557
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 10-fold cross-validation (CV) within training data}
+\NormalTok{modelcv <-}\StringTok{ }\KeywordTok{train}\NormalTok{(}
+\NormalTok{  medv }\OperatorTok{~}\StringTok{ }\NormalTok{.,}
+  \DataTypeTok{data =}\NormalTok{ train,}
+  \DataTypeTok{method =} \StringTok{"lm"}\NormalTok{,}
+  \DataTypeTok{trControl =} \KeywordTok{trainControl}\NormalTok{(}
+    \DataTypeTok{method =} \StringTok{"cv"}\NormalTok{, }\DataTypeTok{number =} \DecValTok{10}
+\NormalTok{  )}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error: Every row has at least one missing value were found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{RMSE_Modelcv <-}\StringTok{ }\NormalTok{modelcv}\OperatorTok{$}\NormalTok{results}\OperatorTok{$}\NormalTok{RMSE}
+\NormalTok{RMSE_Modelcv}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3.132821
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pcv <-}\StringTok{ }\KeywordTok{predict}\NormalTok{(modelcv, test)}
+\NormalTok{errorcv <-}\StringTok{ }\NormalTok{(pcv}\OperatorTok{-}\StringTok{ }\NormalTok{test}\OperatorTok{$}\NormalTok{medv)}
+\NormalTok{RMSE_NewDatacv <-}\StringTok{ }\KeywordTok{sqrt}\NormalTok{(}\KeywordTok{mean}\NormalTok{(errorcv}\OperatorTok{^}\DecValTok{2}\NormalTok{))}
+\NormalTok{RMSE_NewDatacv}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] NaN
+\end{verbatim}
+
+\hypertarget{we-see-that-randomly-splitting-did-massively-improve-th-cv-based-rmse-because-it-remuxf3ved-underlying-bias-associated-in-separating-our-datasets-non-randomly-thus-restring-the-assumption-of-iid-for-inference.}{%
+\section{We see that randomly splitting did massively improve th CV
+based rmse because it remóved underlying bias associated in separating
+our datasets non-randomly, thus restring the assumption of iid for
+inference.}\label{we-see-that-randomly-splitting-did-massively-improve-th-cv-based-rmse-because-it-remuxf3ved-underlying-bias-associated-in-separating-our-datasets-non-randomly-thus-restring-the-assumption-of-iid-for-inference.}}
+
+\hypertarget{problem-4-solution}{%
+\subsubsection{Problem 4 -- Solution}\label{problem-4-solution}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tr.ind <-}\StringTok{ }\KeywordTok{fread}\NormalTok{(}\StringTok{"E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.3_tr.txt"}\NormalTok{, }\DataTypeTok{sep=}\StringTok{" "}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in fread("E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.3_tr.txt", : could not find function "fread"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Train & Test dataset}
+\NormalTok{train <-}\StringTok{ }\NormalTok{Boston[tr.ind}\OperatorTok{$}\NormalTok{V1, ]}
+
+\CommentTok{# Create null model}
+\NormalTok{glm.null <-}\StringTok{ }\KeywordTok{glm}\NormalTok{(medv }\OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{, }\DataTypeTok{data =}\NormalTok{ train)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in glm.fit(x = structure(numeric(0), .Dim = 0:1, .Dimnames = list(:
+## no observations informative at iteration 1
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: glm.fit: algorithm did not converge
+\end{verbatim}
+
+\begin{verbatim}
+## Error in glm.fit(x = structure(numeric(0), .Dim = 0:1, .Dimnames = list(: object 'fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Using all variables as predictors}
+\NormalTok{train_glm.fit <-}\StringTok{ }\KeywordTok{glm}\NormalTok{(medv }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{family =}\NormalTok{ gaussian, train)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in glm.fit(x = structure(numeric(0), .Dim = c(0L, 14L), .Dimnames =
+## list(: no observations informative at iteration 1
+
+## Warning in glm.fit(x = structure(numeric(0), .Dim = c(0L, 14L), .Dimnames =
+## list(: glm.fit: algorithm did not converge
+\end{verbatim}
+
+\begin{verbatim}
+## Error in glm.fit(x = structure(numeric(0), .Dim = c(0L, 14L), .Dimnames = list(: object 'fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# AIC-based forward selection}
+\NormalTok{model.aic.forward <-}\StringTok{ }\KeywordTok{step}\NormalTok{(glm.null, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                          \DataTypeTok{scope =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{lower=}\NormalTok{glm.null, }\DataTypeTok{upper=}\NormalTok{train_glm.fit))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'glm.null' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(model.aic.forward)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(model.aic.forward): object 'model.aic.forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# BIC-based forward selection}
+\NormalTok{model.bic.forward <-}\StringTok{ }\KeywordTok{step}\NormalTok{(glm.null, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(train)), }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                          \DataTypeTok{scope =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{lower=}\NormalTok{glm.null, }\DataTypeTok{upper=}\NormalTok{train_glm.fit))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'glm.null' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(model.bic.forward)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(model.bic.forward): object 'model.bic.forward' not found
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{1}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# AIC-based backward selection}
+\NormalTok{model.aic.backward <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit,  }\DataTypeTok{data =}\NormalTok{ train, }\DataTypeTok{direction =} \StringTok{"backward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(model.aic.backward)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(model.aic.backward): object 'model.aic.backward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# BIC-based backward selection}
+\NormalTok{model.bic.backward <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit, }\DataTypeTok{direction =} \StringTok{"backward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(train)), }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(model.bic.backward)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(model.bic.backward): object 'model.bic.backward' not found
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{2}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Use AIC for interaction terms in the model}
+\CommentTok{# Limiting to 2nd order interactions only}
+
+\CommentTok{# AIC-based forward selection}
+\NormalTok{model.aic.interaction.forward <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                                      \DataTypeTok{scope =}\NormalTok{ . }\OperatorTok{~}\StringTok{ }\NormalTok{.}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(model.aic.interaction.forward)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(model.aic.interaction.forward): object 'model.aic.interaction.forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# BIC-based forward selection}
+\NormalTok{model.bic.interaction.forward <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(train)), }
+                                      \DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{scope =}\NormalTok{ . }\OperatorTok{~}\StringTok{ }\NormalTok{.}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(model.bic.interaction.forward)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in summary(model.bic.interaction.forward): object 'model.bic.interaction.forward' not found
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{3}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{##################### Getting predictors + MSE from previous models}
+
+\CommentTok{# Use glm on test data}
+\NormalTok{test_glm.fit <-}\StringTok{ }\KeywordTok{glm}\NormalTok{(medv }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{family =}\NormalTok{ gaussian, test)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in glm.fit(x = structure(numeric(0), .Dim = c(0L, 14L), .Dimnames =
+## list(: no observations informative at iteration 1
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: glm.fit: algorithm did not converge
+\end{verbatim}
+
+\begin{verbatim}
+## Error in glm.fit(x = structure(numeric(0), .Dim = c(0L, 14L), .Dimnames = list(: object 'fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{##### AIC_forward model}
+\NormalTok{AIC_forward <-}\StringTok{ }\KeywordTok{attr}\NormalTok{(model.aic.forward}\OperatorTok{$}\NormalTok{terms , }\StringTok{"term.labels"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_forward}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'AIC_forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Train}
+\NormalTok{model.aic.forward.train <-}\StringTok{ }\KeywordTok{step}\NormalTok{(glm.null, }\DataTypeTok{data =}\NormalTok{ train, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                          \DataTypeTok{scope =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{lower=}\NormalTok{glm.null, }\DataTypeTok{upper=}\NormalTok{train_glm.fit))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'glm.null' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_forward_mse_train <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.aic.forward.train}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.aic.forward.train}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.forward.train' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Test}
+\NormalTok{model.aic.forward.test <-}\StringTok{ }\KeywordTok{step}\NormalTok{(glm.null, }\DataTypeTok{data =}\NormalTok{ test, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                          \DataTypeTok{scope =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{lower=}\NormalTok{glm.null, }\DataTypeTok{upper=}\NormalTok{test_glm.fit))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'glm.null' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_forward_mse_test <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.aic.forward.test}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.aic.forward.test}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.forward.test' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{##### BIC_forward model}
+\NormalTok{BIC_forward <-}\StringTok{ }\KeywordTok{attr}\NormalTok{(model.bic.forward}\OperatorTok{$}\NormalTok{terms , }\StringTok{"term.labels"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_forward}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'BIC_forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Train}
+\NormalTok{model.bic.forward.train <-}\StringTok{ }\KeywordTok{step}\NormalTok{(glm.null, }\DataTypeTok{data =}\NormalTok{ train, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(train)), }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                          \DataTypeTok{scope =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{lower=}\NormalTok{glm.null, }\DataTypeTok{upper=}\NormalTok{train_glm.fit))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'glm.null' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_forward_mse_train <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.bic.forward.train}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.bic.forward.train}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.forward.train' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Test}
+\NormalTok{model.bic.forward.test <-}\StringTok{ }\KeywordTok{step}\NormalTok{(glm.null, }\DataTypeTok{data =}\NormalTok{ test, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(test)), }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                          \DataTypeTok{scope =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{lower=}\NormalTok{glm.null, }\DataTypeTok{upper=}\NormalTok{test_glm.fit))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'glm.null' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_forward_mse_test <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.bic.forward.test}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.bic.forward.test}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.forward.test' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{##### AIC_backward model}
+\NormalTok{AIC_backward <-}\StringTok{ }\KeywordTok{attr}\NormalTok{(model.aic.backward}\OperatorTok{$}\NormalTok{terms , }\StringTok{"term.labels"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.backward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_backward}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'AIC_backward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Train}
+\NormalTok{model.aic.backward.train <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit,  }\DataTypeTok{data =}\NormalTok{ train, }\DataTypeTok{direction =} \StringTok{"backward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_backward_mse_train <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.aic.backward.train}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.aic.backward.train}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.backward.train' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Test}
+\NormalTok{model.aic.backward.test <-}\StringTok{ }\KeywordTok{step}\NormalTok{(test_glm.fit,  }\DataTypeTok{data =}\NormalTok{ test, }\DataTypeTok{direction =} \StringTok{"backward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'test_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_backward_mse_test <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.aic.backward.test}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.aic.backward.test}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.backward.test' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{##### BIC_backward model}
+\NormalTok{BIC_backward <-}\StringTok{ }\KeywordTok{attr}\NormalTok{(model.bic.backward}\OperatorTok{$}\NormalTok{terms , }\StringTok{"term.labels"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.backward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_backward}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'BIC_backward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Train}
+\NormalTok{model.bic.backward.train <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit, }\DataTypeTok{data =}\NormalTok{ train, }\DataTypeTok{direction =} \StringTok{"backward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(train)), }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_backward_mse_train <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.bic.backward.train}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.bic.backward.train}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.backward.train' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Test}
+\NormalTok{model.bic.backward.test <-}\StringTok{ }\KeywordTok{step}\NormalTok{(test_glm.fit, }\DataTypeTok{data =}\NormalTok{ test, }\DataTypeTok{direction =} \StringTok{"backward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(test)), }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'test_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_backward_mse_test <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.bic.backward.test}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.bic.backward.test}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.backward.test' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{##### AIC-based forward selection + interaction}
+\NormalTok{AIC_forward_interaction <-}\StringTok{ }\KeywordTok{attr}\NormalTok{(model.aic.interaction.forward}\OperatorTok{$}\NormalTok{terms , }\StringTok{"term.labels"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.interaction.forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_forward_interaction}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'AIC_forward_interaction' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Train}
+\NormalTok{model.aic.interaction.forward.train <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit,  }\DataTypeTok{data =}\NormalTok{ train, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                                      \DataTypeTok{scope =}\NormalTok{ . }\OperatorTok{~}\StringTok{ }\NormalTok{.}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_forward_interaction_mse_train <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.aic.interaction.forward.train}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.aic.interaction.forward.train}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.interaction.forward.train' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Test}
+\NormalTok{model.aic.interaction.forward.test <-}\StringTok{ }\KeywordTok{step}\NormalTok{(test_glm.fit, }\DataTypeTok{data =}\NormalTok{ test, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                                      \DataTypeTok{scope =}\NormalTok{ . }\OperatorTok{~}\StringTok{ }\NormalTok{.}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'test_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AIC_forward_interaction_mse_test <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.aic.interaction.forward.test}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.aic.interaction.forward.test}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.aic.interaction.forward.test' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{##### BIC-based forward selection + interaction}
+\NormalTok{BIC_forward_interaction <-}\StringTok{ }\KeywordTok{attr}\NormalTok{(model.bic.interaction.forward}\OperatorTok{$}\NormalTok{terms , }\StringTok{"term.labels"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.interaction.forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_forward_interaction}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'BIC_forward_interaction' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Train}
+\NormalTok{model.bic.interaction.forward.train <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(train)), }
+                                      \DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{scope =}\NormalTok{ . }\OperatorTok{~}\StringTok{ }\NormalTok{.}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_forward_interaction_mse_train <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.bic.interaction.forward}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.bic.interaction.forward}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.interaction.forward' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Test}
+\NormalTok{model.bic.interaction.forward.test <-}\StringTok{ }\KeywordTok{step}\NormalTok{(train_glm.fit, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \KeywordTok{log}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(test)), }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{,}
+                                      \DataTypeTok{scope =}\NormalTok{ . }\OperatorTok{~}\StringTok{ }\NormalTok{.}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in terms(object): object 'train_glm.fit' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{BIC_forward_interaction_mse_test <-}\StringTok{ }\KeywordTok{sum}\NormalTok{( model.bic.interaction.forward.test}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{^}\DecValTok{2}\NormalTok{ )}\OperatorTok{/}\NormalTok{model.bic.interaction.forward.test}\OperatorTok{$}\NormalTok{df.residual}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'model.bic.interaction.forward.test' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{### Get results from above together}
+
+\NormalTok{results <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{rbind}\NormalTok{( }
+                  \KeywordTok{c}\NormalTok{(AIC_forward_mse_train, AIC_forward_mse_test),}
+                  \KeywordTok{c}\NormalTok{(BIC_forward_mse_train, BIC_forward_mse_test),}
+                  \KeywordTok{c}\NormalTok{(AIC_backward_mse_train, AIC_backward_mse_test),}
+                  \KeywordTok{c}\NormalTok{(BIC_backward_mse_train, BIC_backward_mse_test),}
+                  \KeywordTok{c}\NormalTok{(AIC_forward_interaction_mse_train, AIC_forward_interaction_mse_test),}
+                  \KeywordTok{c}\NormalTok{(BIC_forward_interaction_mse_train, BIC_forward_interaction_mse_test)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in rbind(c(AIC_forward_mse_train, AIC_forward_mse_test), c(BIC_forward_mse_train, : object 'AIC_forward_mse_train' not found
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{colnames}\NormalTok{(results) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Training_MSE"}\NormalTok{, }\StringTok{"Test_MSE"}\NormalTok{)}
+\NormalTok{results <-}\StringTok{ }\NormalTok{results }\OperatorTok{%>%}\StringTok{ }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{Model =} \KeywordTok{c}\NormalTok{(}\StringTok{"AIC_forward"}\NormalTok{, }\StringTok{"BIC_forward"}\NormalTok{, }\StringTok{"AIC_backward"}\NormalTok{, }
+                                        \StringTok{"BIC_backward"}\NormalTok{, }\StringTok{"AIC_forward_interaction"}\NormalTok{, }\StringTok{"BIC_forward_interaction"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error: Columns 3, 4 must be named.
+## Use .name_repair to specify repair.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{results}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Training_MSE Test_MSE        NA        NA
+## 1            1  0.00006   0.01160   0.00158
+## 2            2  0.00028   0.00305   0.00650
+## 3            9 25.35862 270.84226 246.74820
+\end{verbatim}
+
+\hypertarget{the-results-suggest-that-stepwise-aic-forward-regression-model-with-2nd-order-interaction-terms-has-the-lowest-rmse-indictaing-it-to-be-the-better-model.-the-variance-not-explained-is-given-by-msevariancey-and-hence-1-variance-unexplained-will-give-us-the-explained-variance}{%
+\paragraph{The results suggest that stepwise AIC-forward regression
+model with 2nd order interaction terms has the lowest RMSE indictaing it
+to be the better model. The variance not explained is given by
+MSE/Variance(Y) and hence 1-Variance Unexplained will give us the
+explained
+variance}\label{the-results-suggest-that-stepwise-aic-forward-regression-model-with-2nd-order-interaction-terms-has-the-lowest-rmse-indictaing-it-to-be-the-better-model.-the-variance-not-explained-is-given-by-msevariancey-and-hence-1-variance-unexplained-will-give-us-the-explained-variance}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{## Variance explained}
+\NormalTok{(}\DecValTok{1} \OperatorTok{-}\StringTok{ }\NormalTok{AIC_forward_interaction_mse_test}\OperatorTok{/}\KeywordTok{var}\NormalTok{(test}\OperatorTok{$}\NormalTok{medv)) }\OperatorTok{*}\StringTok{ }\DecValTok{100}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in eval(expr, envir, enclos): object 'AIC_forward_interaction_mse_test' not found
+\end{verbatim}
+
+\hypertarget{problem-5-solution}{%
+\subsubsection{Problem 5 -- Solution}\label{problem-5-solution}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Dataset}
+\NormalTok{HDS_ex3 <-}\StringTok{ }\KeywordTok{fread}\NormalTok{(}\StringTok{"E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.txt"}\NormalTok{, }\DataTypeTok{sep=}\StringTok{" "}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Error in fread("E:/Dropbox/Important_Documents/Doctoral_Work/Courses/High Dimensional Stats/2019/Week 3/HDS_ex3.txt", : could not find function "fread"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Null Model}
+\NormalTok{glm.null <-}\StringTok{ }\KeywordTok{glm}\NormalTok{(z }\OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{, }\DataTypeTok{data =}\NormalTok{ HDS_ex3)}
+
+\CommentTok{# Log Reg}
+\NormalTok{glm.fit <-}\StringTok{ }\KeywordTok{glm}\NormalTok{(z }\OperatorTok{~}\StringTok{ }\NormalTok{x }\OperatorTok{+}\StringTok{ }\KeywordTok{I}\NormalTok{(x}\OperatorTok{^}\DecValTok{2}\NormalTok{), }\DataTypeTok{family =} \StringTok{"binomial"}\NormalTok{, }\DataTypeTok{data =}\NormalTok{ HDS_ex3)}
+
+\CommentTok{# Forward stepwise selection with AIC}
+\NormalTok{model.aic.forward <-}\StringTok{ }\KeywordTok{step}\NormalTok{(glm.null, }\DataTypeTok{data =}\NormalTok{ HDS_ex3, }\DataTypeTok{direction =} \StringTok{"forward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{TRUE}\NormalTok{,}
+                          \DataTypeTok{scope =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{lower=}\NormalTok{glm.null, }\DataTypeTok{upper=}\NormalTok{glm.fit))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Start:  AIC=162.36
+## z ~ 1
+## 
+##          Df Deviance    AIC
+## <none>        27.173 162.36
+## + x       1   27.099 164.06
+## + I(x^2)  1   27.118 164.13
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(model.aic.forward)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = z ~ 1, data = HDS_ex3)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.5545  -0.5545   0.4455   0.4455   0.4455  
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  0.55455    0.04761   11.65   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.2492911)
+## 
+##     Null deviance: 27.173  on 109  degrees of freedom
+## Residual deviance: 27.173  on 109  degrees of freedom
+## AIC: 162.36
+## 
+## Number of Fisher Scoring iterations: 2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{### THe intercept model is the one chosen by the stepwise method}
+\NormalTok{new.model <-}\StringTok{ }\KeywordTok{glm}\NormalTok{(z }\OperatorTok{~}\StringTok{ }\DecValTok{1} \OperatorTok{+}\StringTok{ }\NormalTok{x }\OperatorTok{+}\StringTok{ }\KeywordTok{I}\NormalTok{(x}\OperatorTok{^}\DecValTok{2}\NormalTok{), }\DataTypeTok{family =} \StringTok{"binomial"}\NormalTok{, }\DataTypeTok{data =}\NormalTok{ HDS_ex3)}
+\KeywordTok{AIC}\NormalTok{(new.model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 139.7259
+\end{verbatim}
+
+\hypertarget{we-may-not-necessarily-always-get-the-highest-variance-explained-and-lower-aic-because-we-only-compare-a-subset-of-possible-models-and-might-miss-the-one-with-the-highest-adjr2lowest-aic-which-would-include-all-the-variables-like-the-above-case.-given-a-set-of-predictors-there-is-no-guarantee-that-stepwise-will-find-the-best-combination-of-predictors-defined-as-say-the-highest-adjusted-r2-it-can-get-stuck-in-local-optimaand-never-reach-the-so-called-global-optima-which-might-be-the-desired-solution}{%
+\paragraph{We may not necessarily always get the highest variance
+explained and lower AIC because we only compare a subset of possible
+models and might miss the one with the highest adjR2/lowest AIC which
+would include all the variables, like the above case. Given a set of
+predictors, there is no guarantee that stepwise will find the ``best''
+combination of predictors (defined as, say, the highest adjusted
+R\^{}2); it can get stuck in local optima´and never reach the so-called
+global optima which might be the desired
+solution}\label{we-may-not-necessarily-always-get-the-highest-variance-explained-and-lower-aic-because-we-only-compare-a-subset-of-possible-models-and-might-miss-the-one-with-the-highest-adjr2lowest-aic-which-would-include-all-the-variables-like-the-above-case.-given-a-set-of-predictors-there-is-no-guarantee-that-stepwise-will-find-the-best-combination-of-predictors-defined-as-say-the-highest-adjusted-r2-it-can-get-stuck-in-local-optimaand-never-reach-the-so-called-global-optima-which-might-be-the-desired-solution}}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{1}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Logistic reg - 1}
+\NormalTok{log.reg1 <-}\StringTok{ }\KeywordTok{glm}\NormalTok{(z }\OperatorTok{~}\StringTok{ }\DecValTok{1} \OperatorTok{+}\StringTok{ }\NormalTok{x }\OperatorTok{+}\StringTok{ }\KeywordTok{I}\NormalTok{(x}\OperatorTok{^}\DecValTok{2}\NormalTok{), }\DataTypeTok{family =} \StringTok{"binomial"}\NormalTok{, }\DataTypeTok{data =}\NormalTok{ HDS_ex3)}
+\KeywordTok{summary}\NormalTok{(log.reg1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = z ~ 1 + x + I(x^2), family = "binomial", data = HDS_ex3)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -2.130  -1.015   0.524   1.001   1.489  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)   2.4880     0.7475   3.328 0.000873 ***
+## x           -12.2659     3.3066  -3.709 0.000208 ***
+## I(x^2)       11.7626     3.1477   3.737 0.000186 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 151.18  on 109  degrees of freedom
+## Residual deviance: 133.73  on 107  degrees of freedom
+## AIC: 139.73
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Logistic reg - 2}
+\NormalTok{log.reg2 <-}\StringTok{ }\KeywordTok{glm}\NormalTok{(z }\OperatorTok{~}\StringTok{ }\DecValTok{1}\OperatorTok{+}\StringTok{ }\NormalTok{x }\OperatorTok{+}\StringTok{ }\KeywordTok{I}\NormalTok{(x}\OperatorTok{^}\DecValTok{2}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{y, }\DataTypeTok{family =} \StringTok{"binomial"}\NormalTok{, }\DataTypeTok{data =}\NormalTok{ HDS_ex3)}
+\KeywordTok{summary}\NormalTok{(log.reg2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = z ~ 1 + x + I(x^2) + y, family = "binomial", data = HDS_ex3)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.0623  -0.9985   0.4939   0.9803   1.8278  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)  
+## (Intercept)   -6.267      4.396  -1.426   0.1540  
+## x             -3.692      5.246  -0.704   0.4815  
+## I(x^2)         3.540      5.026   0.704   0.4812  
+## y              8.648      4.326   1.999   0.0456 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 151.18  on 109  degrees of freedom
+## Residual deviance: 129.49  on 106  degrees of freedom
+## AIC: 137.49
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{(\alph{enumi})}
+\setcounter{enumi}{2}
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Backward Selection}
+\NormalTok{model.aic.backward <-}\StringTok{ }\KeywordTok{step}\NormalTok{(log.reg2,  }\DataTypeTok{data =}\NormalTok{ HDS_ex3, }\DataTypeTok{direction =} \StringTok{"backward"}\NormalTok{, }\DataTypeTok{k =} \DecValTok{2}\NormalTok{, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{)}
+\KeywordTok{summary}\NormalTok{(model.aic.backward)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = z ~ y, family = "binomial", data = HDS_ex3)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.0331  -1.0155   0.5088   0.9903   1.9030  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)   -8.961      2.262  -3.962 7.42e-05 ***
+## y             11.065      2.737   4.043 5.28e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 151.18  on 109  degrees of freedom
+## Residual deviance: 129.99  on 108  degrees of freedom
+## AIC: 133.99
+## 
+## Number of Fisher Scoring iterations: 3
+\end{verbatim}
+
+\hypertarget{based-on-this-the-choice-is-the-model-with-just-y-formula-z-y-instead-of-x-and-its-quadratic-term.}{%
+\paragraph{Based on this the choice is the model with just ``y''
+(formula = z \textasciitilde{} y) instead of ``x'' and its quadratic
+term.}\label{based-on-this-the-choice-is-the-model-with-just-y-formula-z-y-instead-of-x-and-its-quadratic-term.}}
+
+
+\end{document}

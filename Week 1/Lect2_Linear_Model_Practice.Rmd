@@ -1,0 +1,564 @@
+---
+title: "Correlation and linear regression in practice"
+author: "Matti Pirinen, University of Helsinki"
+date: "29.10.2019"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(19)
+```
+
+In this lecture we study relationship between two or more variables.
+First we establish how to quantify the strength of the linear relationship 
+between continuous variables
+and then we learn how to use the relationship to predict
+value of an unknown variable 
+given the values of observed variables.
+
+## 1. Correlation
+
+We read in a data set of heights and weights of 199 individuals (88 males and 111 females).
+This dataset originates from <http://vincentarelbundock.github.io/Rdatasets/doc/carData/Davis.html>.
+
+```{r}
+y = read.table("https://www.mv.helsinki.fi/home/mjxpirin/HDS_course/material/Davis_height_weight.txt",as.is = T, header=T)
+head(y)
+```
+
+The last two columns are self-reported values of weight and height.
+Let's plot weight against height.
+
+```{r}
+plot(y$height, y$weight, pch = 20, ylab = "weight (kg)", xlab = "height (cm)")
+```
+
+Unsurprisingly, there is a clear pattern where taller individuals weight more.
+To quantify the (linear part of the) relationship, we compute a Pearson's
+**correlation coefficient** between the variables. This happens in two parts:
+compute the covariance between the variables and scale the covariance by the variability of both variables to
+get a dimensionless correlation coefficient.
+
+**Covariance** measures the amount of variation in the variables that is linearly shared between the variables.
+Technically, it is the average product of deviations from the means of the variables, and from
+a sample it is computed as
+$$\textrm{cov}(X,Y) = \frac{1}{n-1}\sum_{i=1}^{n}(x_i - \overline{x})(y_i - \overline{y}) 
+\textrm{, where }\overline{x}, \overline{y} \textrm{ are the means of }x_is \textrm{ and } y_is, \textrm{resp}.$$
+When both X and Y tend to be above their mean values simultaneously, then covariance is positive, whereas
+the covariance is negative if when X is above its mean, Y tends to be below its mean. Covariance
+of 0 says that there is no linear relationship between X and Y.
+Note that if we compute the covariance between the variable with itself,
+that is, $X=Y$ in the formula above, the result is simply
+the variance of that one variable. 
+Thus, covariance is a generalization of
+the concept of variance to two variables.
+
+
+**Correlation** coefficient results when covariance is normalized by the product of
+the standard deviations of the variables:
+$$\textrm{cor}(X,Y) = \frac{\textrm{cov}(X,Y)}{\textrm{SD}(X) \textrm{SD}(Y)}.$$
+Correlation is always between -1 and +1, and it denotes the strength of the linear relationship
+between the variables. If correlation is +1, then values of X and Y are on a line that has a positive slope
+and if correlation is -1, then X and Y are on a line that has a negative slope. When correlation is 0,
+there is no linear association between the variables. (See 
+Figures from [Wikipedia](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient).)
+Note that if correlation between X and Y is 1 it does not necessarily 
+mean that $Y = X$, but that only that 
+there is a linear relationship of the form 
+$Y= a+ bX$ for some constants $a$ and $b$, and any such linear relationship
+leads to the correlation of 1.
+
+
+Suppose we have an estimate $\widehat{r}$ of the correlation between X and Y, based on a sample of
+$n$ observation ($n=199$ in the example above). 
+To do statistical inference with correlation coefficient we need to know the
+standard error of the estimate of the correlation.
+An approximation for Normally distributed data is:
+$$\textrm{SD}(\widehat{r}) \approx \sqrt{\frac{1-\widehat{r}^2}{n-2}}$$
+This is accurate when correlation is not far from 0 (say $|r|<0.5$), but is becoming less acurate
+near $\pm 1$. For more accurate confidence intervals you can use `r.con()` from package `psych`.
+
+
+We expect a clear positive correlation between weight and height based on the Figure above.
+Let's see what it is.
+```{r}
+n = nrow(y) #sample size
+r = cor(y$height, y$weight) #correlation is symmetric cor(weight,height) = cor(height,weight)
+se = sqrt((1-r^2)/(n-2)) 
+library(psych) #DO FIRST: install.packages("psych")
+ival = r.con(r, n, p = 0.95, twotailed = TRUE)
+cbind(r = r, low95CI = ival[1], up95CI = ival[2], 
+      low95CI.norm.appr = r-1.96*se, up95CI.norm.appr = r+1.96*se)
+```
+In this case, `r.con()` gives 95CI as (0.707, 0.822) showing some difference from the less accurate normal approximation.
+
+**Exercises 1**
+
+1. Plot scatter plot of `weight` on x-axis and `repwt` on y-axis.
+Make a similar plot for `height` and `repht`. Do the reported values
+seem highly correlated with the measured values?
+
+2. Compute correlation between `weight` and `repwt` (self-reported weight)
+and between `height` and `repht` (self-reported height).
+Note that you need to use `use = "complete.obs"` to get rid of NAs.
+
+3. Compute a **correlation matrix** of the four variables `weight`, `height`,
+`repwt` and `repht` by giving `cor()` function those four columns of the data matrix
+as input. Note that you need to use `use = "pairwise"` in `cor()` to get rid of NA
+values.
+
+4. Plot the curve $y=x^2$ in the range $x \in (-1,\ldots,1)$ using 1000 equally spaced values for $x$. Guess what would be the correlation between $x$ and $y$. Compute correlation.
+
+5. Plot the curve $y=x^3$ in the range $x \in (-1,\ldots,1)$ using 1000 equally spaced values for $x$. Guess what would be the correlation between $x$ and $y$. Compute correlation.
+
+
+## 2. Linear regression
+
+Correlation coefficient $r$ describes the strength of linear relationship between two variables.
+Both variables are treated symmetrically in definition of $r$.
+However, we may also want to utilize the linear relationship to predict the value of Y given that
+we know the value of X. For example, we may use our observed population above to make a 
+statistical prediction of weights of individuals who are exactly 170 cm tall.
+From the Figure above we see that such individuals have weights roughly in range from 50 kg to 80 kg.
+To characterize the relationship more mathematically,
+we want to fit a line through the observed data that describes how Y depends on X.
+The **linear regression** model assumes that
+$$y_i = a + b x_i + \varepsilon_i,$$
+where $a$ (intercept, vakio) and $b$ (slope, kulmakerroin) 
+are model parameters that define the line and $\varepsilon_i=y_i-\widehat{y}_i$ 
+is the difference between the observed value $y_i$ and the value 
+predicted by the line 
+$\widehat{y}_i = a + b x_i$.
+Any pair of parameters $a$ and $b$ define one line (namely $y = a + bx$) in 
+X-Y coordinates and among all those
+lines we choose the one that minimizes the sum of the squared errors. 
+That is, we choose $a$ and $b$
+in such a way that residual error sum of squares
+$$\textrm{SSE} = \sum_{i=1}^n(y_i-\widehat{y}_i)^2 = \sum_{i=1}^n(y_i-(a+bx_i))^2$$
+is minimized. This line fits best the observed data in the "least squares" sense.
+We denote these **least squares estimates** 
+of the parameter values as $\widehat{a}$ and $\widehat{b}$.
+
+In R the linear model is estimated using `lm()` function where formula `y~x`
+says that "regress y on x". The regression line can be added to a figure by `abline()` function.
+
+```{r}
+lm.1 = lm( weight ~ height, data = y)
+plot(y$height, y$weight, pch = 20, ylab = "weight (kg)", xlab = "height (cm)", col="gray")
+abline(lm.1, col="red", lwd=1.5)
+summary(lm.1)
+```
+
+In output of the `summary`:
+
+* Residuals are the observed vertical differences between the line and the observed weight value
+* Coefficients show the least squares parameter estimates with their SEs and P-values 
+ (here highly significantly different from 0 with P-values < 2e-16). The slope tells that each cm
+ in height corresponds to an average increase of 1.15 kg in weight.
+* Residual standard error is an estimate for standard deviation of errors ($\sigma$ parameter in model)
+* R-squareds tell how large proportion of the variance in Y the line explains compared to the total
+variance in Y. Typically, we should be looking at Adjusted Rsquared as it is 
+more reliable than the raw Rsquared if there are many predictors in the model.
+
+In this case, the linear model on height explains almost 60% of the variation in weight and therefore
+about 40% of variation in weight is something that cannot be explained 
+by (a linear effect of) height only. Note that in the case of simple linear regression with
+one predictor (here height), Rsquared is exactly the square of the correlation between X and Y.
+```{r}
+cor(y$weight, y$height)^2
+summary(lm.1)$r.squared
+````
+
+This explains why correlation coefficient is a measure of strength of a linear association between variabels:
+When $r=\pm1$, then the linear regression model explains all variation in Y and hence the observations
+are on a single line in X-Y coordinates.
+
+Let's see what columns we have in the `lm` object:
+```{r}
+names(lm.1)
+```
+
+We could get both the fitted values (`lm.1$fitted.values`) as well as residuals (`lm.1$residuals`)
+for each individual from the regression model object. For example, let's find for which individuals the
+predicted weight is more than 20kg off.
+```{r}
+ii = which(abs(lm.1$residuals) > 20) #returns row indexes for which condition is TRUE
+cbind(y[ii,2:4], lm.1$fitted.values[ii], lm.1$residuals[ii])
+```
+
+We notice 2 things. First there is one outlier case where weight is 119 kg whereas it is predicted
+to be 76 kg based on the height of 180 cm. Second, all of the worst predictions happened for males.
+Indeed, it is unlikely that the same linear regression model would be good for both 
+males and females.
+
+Let's add sex as an another predictor to the model to allow different mean 
+weights in males and females.
+Since `sex` is of type "character" with two values ("M" and "F"), 
+R automatically treats it as *factor* in regression model.
+For factor variables, regression model will get 
+different baseline values for different levels of the factor
+(here males and females).
+```{r}
+lm.2 = lm(weight ~ height + sex, data = y) 
+summary(lm.2)
+```
+
+Now our model says that after we account for difference in 
+average weight between males and females,
+each cm in height corresponds to 0.81 kg in height (it was 1.15 kg when sex wasn't accounted for).
+Additionally we see that for the same height, a male weights on average 8.2 kg more than a female.
+This model is a better description of the data as adjusted Rsquared has increased to 
+63% from 59% in model `lm.1`.
+
+But are there differences in the height-weight slope between the sexes? 
+Let's simply fit separate linear models in males and in females and see the slopes.
+
+```{r}
+males = y$sex == "M"
+lm.m = lm(weight ~ height, data = y[males,])
+lm.f = lm(weight ~ height, data = y[!males,])
+```
+
+We see that slope in females is
+```{r}
+b = summary(lm.f)$coeff[2,1] #coeff matrix has one row for each parameter
+s = summary(lm.f)$coeff[2,2] #row 2 is for slope and row 1 for intercept
+cbind(b=b, low95 = b-1.96*s, up95 =b+1.96*s)
+```
+And in males
+```{r}
+b = summary(lm.m)$coeff[2,1]
+s = summary(lm.m)$coeff[2,2]
+cbind(b=b, low95 = b-1.96*s, up95 = b+1.96*s)
+```
+
+It seems like slope in females might be considerably smaller than in males, but since the 95%CIs
+are quite wide, this cannot be concluded reliably from these data alone.
+
+Let's see how much regression explains within each sex.
+```{r, fig.height=4.5}
+par(mfrow=c(1,2))
+plot(y[males,"height"], y[males,"weight"], pch = 20, ylim = c(35,120), xlim=c(140,200),
+     ylab = "weight (kg)", xlab = "height (cm)", col="gray")
+abline(lm.m, col="cyan", lwd=1.5)
+title(paste0("MALES R2=",signif(summary(lm.m)$r.squared,3)))
+plot(y[!males,"height"], y[!males,"weight"], pch = 20, ylim = c(35,120), xlim=c(140,200),
+     ylab = "weight (kg)", xlab = "height (cm)", col="gray")
+abline(lm.f, col="magenta", lwd=1.5)
+title(paste0("FEMALES R2=",signif(summary(lm.f)$r.squared,3)))
+```
+
+We see a dramatic decrease in variance explained after we have adjusted the analyses for sex.
+This is because there is a strong difference in both height and weight distributions between males and females,
+and therefore a large part of the explanatory power of the orginal model was the effect of sex.
+After sex is accounted for, height explains about 25-30% of variation in weight.
+This shows how important the additional variables, also called
+covariates, can be for the 
+interpretation of the regression model parameters.
+We talk more about these effects of *covariate adjustment* 
+later in this lecture.
+
+**Exercises 2**
+
+1. Generate 10 values for $x$ from interval $(-1,\ldots,1)$ and generate
+corresponding values for $y$ using `rnorm(10,x,sigma)` where
+`sigma` takes sequentially values of 0.1, 1 and 10.
+For each value of `sigma`, plot the points on X-Y coordinates,
+fit the linear model and add the fitted line to the picture.
+Use `summary()` command to see whether there is a statsitically
+significant linear relationship between X and Y in each data set.
+
+2. Plot scatter plot of `weight` on x-axis and `repwt` on y-axis.
+Fit a linear model regressing `repwt` on `weight`. 
+Add the regression line to the Figure.
+What is the slope of the model?
+What is the value of `repwt` for individual 19 and what is the
+fitted value of `repwt` based on the model for individual 19?
+What is the residual error for individual 19?
+
+
+
+
+## 3. Predictions from the regression model
+
+Let's use `predict()` function to predict a weight for two new individuals who are 160 cm and 180 cm tall.
+We need to give the input data in the same kind of data.frame that was used in the original
+model fit with `lm()` function. The uncertainty of prediction can be asked on the level of individual
+value `interval="prediction"` or as a confidence interval for the population average at the given 
+parameters `interval="confidence"`. Typically we are interested in predicting new observations, whence we use `"prediction"` and
+the uncertainty is larger than in predicting the population mean with
+`"confidence"` option.
+
+```{r}
+new.data = data.frame(height = c(160,180) )
+predict(lm.f, newdata=new.data, interval = "prediction") #for females of 160 and 180 cm
+```
+
+```{r}
+predict(lm.m,newdata=new.data, interval = "pred") #for males of 160 and 180 cm
+```
+
+We see that a female of 180 cm are predicted at 66 kg with 95% interval (54,79) whereas male of same height
+at 78kg (58,98).
+
+**Exercises 3.**
+
+1. What is the predicted weight of a male who is 170 cm tall? What is the 
+predicted population average weight of all males who are 170 cm tall?
+Give prediction intervals in both cases.
+ 
+2. Fit a linear model regressing `height` on `weight` in females. What is the predicted
+height of a woman who is 170cm tall?
+
+
+## 4. Assessing model fit
+
+How do we know whether a linear model is an approriate model
+for our data set? First we should consider this conceptually:
+Is there a reason to think that a linear relationship
+between the variables is appropriate for the research question
+we have in mind?
+If answer is positive, then we should ask how
+is the linear model fitting the data and are the modling assumptions
+valid? The main assumptions for linear model are:
+
+1. The relationship between Y and X is linear. 
+2. Errors of Y have constant variance for all values of X. 
+3. Errors of Y are independent of each other.
+4. Errors have Normal distribution (for SE and P-value to be valid).
+
+There are 4 standard plots that we can use to assess these 
+assumptions and they are made by calling `plot()`
+on the regression model object. 
+Let's first check how our first model without adjustment for `sex`
+behaves in these diagnostic plots:
+
+```{r,fig.height = 8}
+par(mfrow=c(2,2)) #plot diagnostics to 2x2 area
+plot(lm.1)
+```
+
+To interpret these plot, read <https://data.library.virginia.edu/diagnostic-plots/>.
+For our test data, 
+the diagnostics look quite good, except that the observation 20 seems a bit outlying from the rest.
+However, the lower right plot shows that it does not have a 
+large influence on the fitted line
+(as explained in the link above) and therefore we are not that concerned
+about it.
+
+### Anscombe's quartet
+
+Francis Anscombe generated [four data](https://en.wikipedia.org/wiki/Anscombe%27s_quartet) 
+sets of 11 observations that had similar
+summary statistics (means, variances correlations) but look very different when plotted.
+His point was to emphasize the importance to plot the data. Here we use
+these four sets to assess how linear model fits different data sets.
+Let's start by plotting the datasets and fitting linear model and computing correlations
+and slopes.
+
+```{r, fig.width = 8, fig.height = 8}
+par(mfrow=c(2,2))
+lm.ans = list() #this is empty list where linear models are collected
+for(ii in 1:4){
+  x = anscombe[,ii] #x-coordinates for Anscombe's data set ii
+  y = anscombe[,4+ii] #y-coordinates
+  lm.ans[[ii]] = lm(y ~ x)
+  plot(x,y, main=paste("Anscombe",ii), pch = 19, xlab = "x", ylab = "y",
+       sub = paste0("r=",signif(cor(x,y),3)," b=",signif(coefficients(lm.ans[[ii]])[2],3)))
+  abline(lm.ans[[ii]], col = "red", lwd = 1.5)
+}
+```
+
+We see that the data sets are identical with respect to x-y correlation and in the
+linear model slope, but we also see that the data sets are very different in other respects,
+and, in particular, the linear model does not seem appropriate for the 
+data sets 2,3,4.
+Let's see diagnostic plots for the linear models.
+
+```{r,fig.width = 9, fig.height = 9}
+par(mfrow=c(4,4))
+par(mar=c(3,3,2,1))
+for(ii in 1:4){plot(lm.ans[[ii]])}
+```
+
+## 5. Example analysis: Social factors in 1998 
+
+Let's study some social factors from around the world using a UN data sets from 1998.
+For description of variables see <http://vincentarelbundock.github.io/Rdatasets/doc/carData/UN98.html>.
+
+```{r}
+y = read.csv("https://www.mv.helsinki.fi/home/mjxpirin/HDS_course/material/UN98.csv")
+head(y) #show some first rows
+```
+
+Let's give these variables shorter names to avoid writing long
+names below:
+```{r}
+colnames(y) = c("country","region","tfr","contr","eduM","eduF","lifeM",
+                "lifeF","infMor","GDP","econM","econF","illiM","illiF")
+```
+Let's plot the pairwise correlations using `corrplot`
+```{r}
+#install.packages("corrplot")
+library(corrplot) 
+x = as.matrix(y[,3:14]) #make a matrix of numeric columns for cor()
+corr = cor(x, use = "complete") #"complete" means remove NAs
+corrplot.mixed(corr, order="hclust")
+```
+
+We see two clear blocks of highly correlated variables. First block
+is about positive things like life expectancy, education and
+availability of contraception and the second about 
+negative things like illiteracy, infant mortality and high fertility rate.
+There are also some surprising correlations, or rather aurprising 
+lack of correlation, between, for example, GDP and economic activity. Let's have a more careful look. Let's first check the distributions of these two variables.
+
+```{r, fig.width = 9, fig.height = 4}
+par(mfrow=c(1,3))
+hist(y$econM, col="blue", breaks = 25)
+hist(y$GDP, col="orange", breaks = 25)
+hist(log10(y$GDP), col="yellow", breaks = 25)
+```
+
+We see that activity is roughly symmetric and Normally distributed but GDP is an example
+of highly skewed distribution with a strong tail to right. This is typical to 
+variables describing wealth or, more generally, variables that take only non-negative values.
+Often logaríthm of such a variable is a much better input variable to linear regression
+as it is often more symmetric and Normally distributed (as is the case here). 
+Thus we will use log10 of GDP.
+
+```{r}
+plot(y$econM, log10(y$GDP)) 
+y[which(y$econM > 90),] #print countries with over 90% Males "economically active"
+```
+
+We have poor countries like Burundi and Chad and rich countries like Qatar and United Arab Emirates
+that both have high proportion of economic activity. One clear factor separating these is infant mortality.
+Let's look the same plot but color points by infant mortality.
+```{r}
+plot(y$econM, log10(y$GDP), pch = 20, col = heat.colors(nrow(y))[nrow(y)-rank(y$infMor)],
+     main = "Colored by infant mortality (dark=high, light=low)") 
+```
+
+Based on this 
+we can guess what linear model says when we predict GDP by both Economic activity and Infant mortality:
+```{r}
+lm.0 = lm(log10(GDP) ~ econM + infMor, data = y)
+summary(lm.0)
+```
+Economic activity is not important predictor whereas Infant mortality is. 
+
+Let's do linear model using Infant mortality alone as predictor.
+
+```{r}
+lm.1 = lm(log10(GDP) ~ infMor, data = y)
+summary(lm.1)
+plot(y$infMor, log10(y$GDP), pch = 20)
+abline(lm.1, col="red", lwd=1.5)
+```
+
+We see that
+log10 of GDP is decreasing by 0.014 for each unit of infant deaths (per 1000 infants).
+In other words, when infant mortality increases one per mille, GDP drops multiplicatively by a factor
+of 10^(-0.014051)=`r 10^(-0.014051)`, i.e., it drops about 3%. This model alone 
+explains about 50% of variation in GDP.
+
+Does this model fit the data well? It looks like there is tendency of errors being positive at the
+ends, which would suggest adding second order term in the model. Let's make diagnostic plots.
+```{r, fig.height=8}
+par(mfrow=c(2,2))
+plot(lm.1)
+```
+
+No other clear problems except that residuals have a shape of a prabola in the first plot.
+Let's add quadratic term whence our model becomes `log10(GDP) ~ InfMor + InfMor^2`.
+The quadratic term needs to be input through `I()` notation as below.
+
+```{r}
+lm.2 = lm(log10(GDP) ~ infMor + I(infMor^2), data = y)
+summary(lm.2)
+plot(y$infMor, log10(y$GDP), pch = 20)
+#To plot the fitted values from lm.2, we need the correct x-coordinates, and these we get as:
+included = setdiff(1:nrow(y), as.numeric(lm.2$na.action)) #these indexes of y were incl'd in regression
+points(y$infMor[included], lm.2$fitted.values, col = "red", lwd = 1.5)
+legend("topright",pch=1,legend = c("fitted"), col="red")
+```
+
+This quadratic term clearly improves model fit (R2 increases from 50% to 62%) and 
+fitted values take into account the curved pattern in data. Let's see
+diagnostic plots.
+```{r, fig.height=8}
+par(mfrow=c(2,2))
+plot(lm.2)
+```
+
+Look good.
+
+We have found very strong (inverse) association between Infant mortality and GDP.
+Can we now say that Infant mortality is **the cause** of differences in GDP?
+The answer is **NO**. Causal statements can never be made from regression analysis alone!
+**Correlation is not causation** is an important fact to remember in all fields of 
+data analysis! 
+This is because there can be some third factor Z, 
+that could be causally influencing both X and Y,
+and hence the effect of Z could cause the observed correlation between X and Y
+even though neither X nor Y was causally influencing the other.
+Such a third variable Z is called a **confounder** when it is *confounding* the association 
+between X and Y.
+A common statistics textbook example is the positive correlation between ice-cream sales and deaths by drowning.
+Is ice-cream causing drowning? No, it is sun and hot temperature that increase
+ice-cream sales and also increase activity on water, which then also leads to more accidents on water,
+and consequently deaths by drowning. So weather is confounding the association between
+ice-cream sales and drowning. Correlation is not causation.
+
+Since we can never measure all variables in observational studies, it remains very
+difficult to end up in causal inference using observational data as additional, unmeasured
+confounders could influence the correlation estimates.
+Luckily, in clinical medicine and experimental science, 
+there is an important method to overcome the problem of
+unmeasured variables: **randomized controlled trial (RCT)** ([link](https://en.wikipedia.org/wiki/Randomized_controlled_trial)).
+The situation is more challenging for observational 
+population-level epidemiology or social sciences, 
+for example, and there causal statements are difficult to justify.
+
+
+## 6. Multiple regression with social factors
+
+Let's think a bit more about what happens when we include multiple predictors in the same
+linear regression model. Above we established that Infant Mortality was a strong predictor
+of GDP. What about Total Fertility Rate (tfr)? 
+
+```{r}
+lm.3 = lm(log10(GDP) ~ tfr, data = y)
+summary(lm.3)
+plot(y$tfr, log10(y$GDP), pch = 20)
+abline(lm.3, col = "red", lwd = 1.5)
+```
+
+A very clear association where higher fertility associates with decreasing GDP.
+The model explains about 38% of the variation. Let's then include both 
+Infant Mortality and tfr in the same model. This is an example of multiple regression model.
+```{r}
+lm.4 = lm(log10(GDP) ~ tfr + infMor, data = y)
+summary(lm.4)
+```
+In this model, only `infMor` seems important (effect is many SEs away from zero as denoted
+by small P-value) whereas the association with `tfr` has disappeared (effect dropped from -0.25 to -0.02
+and P-value went from <2e-16 to 0.57). This is possible because `infMor` and `tfr` are correlated
+and therefore their effect estimates in multiple regression model can be different from their effects in
+simple regression models where only one of them is included at once. In these data it seems that
+the effect that `tfr` explained when it was alone in the model, can be completely explained by 
+a correlated variable `InfMor`. Multiple regression has here produced new insights over 
+pairwise correlations.
+
+We say that the effect size of `tfr` from multiple regression model "has been adjusted for"
+`infMor` whereas the effect of `tfr` from the simple regression model was not so adjusted.
+The interpretation for the effect estimates from multiple regression is that they tell 
+what happens to the outcome variable (here log10(GDP)) per a unit change in the 
+focal predictor (here `tfr`), when other predictors (here `infMor`) are kept constant.
+Thus, here we have learned that if we fix the level of infant mortality, 
+then the fertility rate does not anymore noticeably affect GDP.
+
+

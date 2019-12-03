@@ -1,0 +1,728 @@
+---
+title: "HDS 8. Principal component analysis (PCA)"
+author: "Matti Pirinen, University of Helsinki"
+date: "28.11.2019"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Now we move from variable selection to dimension reduction.
+The goal is to represent high dimensional data in a useful way
+in a low dimensional subspace, for example, to visualize the data in
+human interpretable ways or to pre-process the data for downstream analyses
+that benefit from reduced data size. The key question is what is
+a *useful* way to reduce dimension. Intuitively, given a target dimension,
+we want to find a mapping from the original data to the target space by
+keeping as much of the original information as possible. PCA 
+(first defined in 1901 by K. Pearson) is one of the most
+widely used method for this purpose, 
+and one with a clear statistical motivation and linear algebraic implementation, 
+so we will start from it. 
+
+#### Example in 2 dimensions
+
+Let's consider a set of n=50 points on 2D space (p=2):
+```{r}
+set.seed(18)
+n = 50
+x.1 = rnorm(n)
+x.2 = 0.4*x.1 + rnorm(n, 0, 0.4)
+X = cbind(x.1 - mean(x.1), x.2 - mean(x.2)) #Always mean-center for PCA
+plot(X, asp = 1, pch = 19, xlab = expression(x[1]), ylab = expression(x[2]))
+grid()
+var(X) #what is variance in x and y direction? and what is the covariance?
+```
+
+The variables are quite correlated, so they are telling partly a redundant
+story. Do we really need 2 dimensions to represent these data?
+Or could 1 dimension be enough? How could we put these points to 
+one dimension in a useful way that would preserve main properties of 
+their relationships?
+
+Let's draw some lines through the origin and 
+project the data on those lines. 
+(Since data are mean centered, the origin is at the center of the data set.) 
+Then we will have 1-dimensional representations of the data.
+The unit vector of a line that passes through the origin with slope $b$
+is $\pmb u = (1,b)^T/\sqrt{1+b^2}$.
+The projection of a point $\pmb x=(x_1,x_2)^T$ 
+on that line is 
+$$
+(\pmb u^T \pmb x) \pmb u = \left(\frac{(1,b)\cdot(x_1,x_2)}{\sqrt{1+b^2}}\right)\frac{(1,b)^T}{\sqrt{1+b^2}}=
+\left(\frac{x_1+b x_2}{1+b^2}\right)  (1,b)^T
+$$
+And the coordinate of the point along the 1-dimensional line is 
+$$(\pmb u^T \pmb x) = \left(\frac{x_1+b x_2}{\sqrt{1+b^2}}\right).$$
+
+```{r}
+plot(X, pch = 1, xlim = c(-3,3), ylim = c(-3,3), asp = 1,
+     xlab = expression(x[1]), ylab = expression(x[2]))
+grid()
+b = c(-0.7, 0.2, 2) #example lines
+cols = c("purple", "blue", "orange")
+vars = rep(NA, length(b)) #variances of the projected point on each line
+for(ii in 1:length(b)){
+  abline(0, b[ii], col = cols[ii], lty = 2, lwd = 0.7)
+  coord.on.line = (X[,1] + X[,2]*b[ii]) / sqrt(1 + b[ii]^2) #coordinate along each line
+  z = coord.on.line/sqrt(1 + b[ii]^2) #temp variable
+  points(z, z*b[ii], col = cols[ii], pch = 1, cex = 0.7) #points on the line 
+  #Show projection for point jj=10 using arrows from point to lines
+  jj = 10
+  arrows(X[jj,1], X[jj,2], z[jj], z[jj]*b[ii], code = 2, 
+         length = 0.1, lwd = 2, col = cols[ii])
+  vars[ii] = var(coord.on.line)
+  }
+points(X, pch = 1) #redraw the original points on top
+cbind(b, vars) #see what is the variance of the projected points on each line
+```
+
+Because the projections are orthogonal, we can think that the
+projections preserve (some) of the original relationships between the points.
+It seems that line 2 (with slope 0.2) separates the points most from each other
+as on that line the projected points have the largest empirical variance.
+In that sense it preserves more information about the 
+original data than the other two lines. 
+Think about the two extremes that would be 
+the useless case where each original point is projected
+on the same point on a line, whence we lose all the information about
+the differences between the original data units, 
+and the case of perfect information where the original data was already 
+on a line and therefore we do not lose anything by simply recording the
+coordinates on that line.
+In reality we always work with data in between these extremes, 
+and in PCA the criteria of finding the subspace is to choose the 
+line on which the projections preserve the highest possible variance.
+
+What would be the line on which the points had the largest variance?
+Let's find the unit vector $\pmb u = (u_1,u_2)^T$ $(u_1^2 + u_2^2 =1)$ that
+maximizes the empirical variance of the projections of $X$ on that line.
+As the columns of $\pmb X$ are mean-centered then also the
+mean of $\pmb X \pmb u$ is 0, and variance is proportional to the
+sum of squares of $\pmb X \pmb u$:
+$$\widehat{\textrm{Var}}\left(\pmb X \pmb u \right) \propto 
+\pmb u^T \pmb X^T \pmb X \pmb u.$$
+
+Matrix theory (see Rayleigh quotient) 
+says that this quantity is maximized
+(among all unit vectors $\pmb u$) when $\pmb u$ is 
+the eigenvector of $\pmb X^T \pmb X$
+corresponding to the largest eigenvalue. Let's see what it gives.
+
+```{r}
+eig = eigen(t(X) %*% X)
+eig$values
+eig$vectors #are in columns, in decreasing order of eigenvalues
+u = eig$vectors[,1] #corresponds to the largest eigenvalue.
+plot(X, pch = 1, xlim = c(-3,3), ylim = c(-3,3), asp = 1, 
+     xlab = expression(x[1]), ylab = expression(x[2]) ) #plot the data again
+abline(0, u[2]/u[1], lty = 2, col = "red") #add max variance line whose unit vector is u
+#do projections on the max variance line
+coord.on.line = (X %*% u) #coordinates of points in X projected on line u
+points( cbind(u[1]*coord.on.line, u[2]*coord.on.line), col = "red", cex = 0.7)
+var(coord.on.line)
+```
+
+Looks plausible. Visually the projection on this lines preserves a lot of the 
+information of the configuration of the points in the 2D plane.
+
+For an interactive demo on the same idea see the top answer here:
+https://stats.stackexchange.com/questions/2691/making-sense-of-principal-component-analysis-eigenvectors-eigenvalues
+
+Since eigenvectors (of a symmetric matrix like $\pmb X^T \pmb X$) 
+are orthogonal, they give a new coordinate system
+on which the data has the maximum variance on the 1st axis 
+and the 2nd axis is the orthogonal direction (in which the data varies
+less compared to the 1st axis). These are called the principal components (PCs)
+of the data $\pmb X$. The idea is that since PC 1 has been chosen to
+maximise the variability between the points, it is a good candidate
+for the 1-dimensional representation of the original data. We may
+reduce the dimension of the data by only storing the points' coordinates
+on the 1st PC and ignoring the 2nd PC. We will lose some information, but,
+as measured by variance, as little as possible given that we will reduce the dimension.
+
+See this for some interactive play with 2D and 3D PCA:
+http://setosa.io/ev/principal-component-analysis/
+
+
+#### PCA more generally
+
+More generally, when $p>2$, there exist $\min\{p,n\}$ PCs. 
+The $k$th PC is defined by unit vector $\pmb u_k = (u_{k1},\ldots,u_{kp})^T$, 
+$\left(||\pmb u_k||_2 = 1\right)$, and the **score** (previously called
+"coordinate") of sample $i$ on PC $k$ is 
+$\textrm{pc}_k(i) = \pmb x_i^T \pmb u_k$. 
+The coefficient $u_{kj}$ by which the variable $j$ contributes to PC $k$
+is called the **loading** of variable $j$ on PC $k$. 
+PCs have following properties
+
+ * PC 1 is the 1-dimensional subspace of $\mathbb{R}^p$ on which the projection
+ of the rows of data $\pmb X$ have the maximum empirical variance.
+ * PC $k>1$ is the 1-dimensional subspace of $\mathbb{R}^p$ that is orthogonal
+ to all PCs 1,...,$k-1$ and on which the projection
+ of the rows of data $\pmb X$ have the maximum empirical variance among all
+ the subspaces orthogonal to the previous PCs.
+ 
+Each PC is a 1-dimensional subspace (line) in the $p$-dimensional 
+space of all variables. Equivalently it is an image of
+a linear combination of all $p$ variables. Suppose that we have a 
+new sample $\pmb x^*$ measured on the same $p$ variables on which we 
+have constructed PCs earlier with data matrix $\pmb X$. 
+We can project this new sample on the existing PCs by the linear mapping 
+$\textrm{pc}_k(\pmb x^*) = {\pmb x^*}^T \pmb u_k = \sum_{j=1}^p x^*_j u_{kj}$.
+
+The dimension reduction to $k\leq p$ dimensions with PCA happens by simply ignoring the the PCs after the $k$ largest components are maintained.
+For visualization of the data we use only 2 or 3 components.
+
+It can be shown that the first $k$ PCs minimize the total sum of squared
+distances between the original points and their projections on 
+any $k$ dimensional subspace. Linear regression minimizes error
+between a particular outcome variable $y$ and its prediction made as a 
+linear combination of a set of predictor variables $x_j$. 
+PCA, instead, treats all variables equally 
+(not separating any predictors from any outcome(s)) 
+and minimizes the total squared distance between its predictions (that are the 
+projections to the first $k$ PCs) and 
+the original points in $p$ dimensional space.
+
+#### Derivation with more detail
+
+Above it was assumed known from the matrix theory that the maximum 
+variance line problem is solved by the leading eigenvector of the data product 
+matrix $\pmb X^T \pmb X$.
+We can derive the PCA solution also by relying on a slightly simpler result
+on the existence of an eigenvalue decomposition of a symmetric (p x p) 
+matrix $\pmb S$. 
+This result says that $\pmb S$ can be written as 
+$\pmb S = \pmb U \pmb D \pmb U^T$, 
+where (p x p) matrix $\pmb U$ is orthonormal (that is, for any columns $i\neq j$ $\pmb u_i^T \pmb u_j = 0$ and $\pmb u_i^T \pmb u_i = 1$) and $\pmb D = (d_j)_{j=1}^p$ is a diagonal matrix. 
+Note that $\pmb U \pmb U^T = \pmb U^T \pmb U = \pmb I$. 
+
+Let's set as our goal to find a suitable orthogonal transformation of the 
+$p$ variables (defined by a $p\times p$ matrix $\pmb Q$) that 
+removes the covariances between our original variables. In other words,
+we look for an orthogonal $\pmb Q$ that will transform our observed 
+p-dimensional vector $\pmb x$, with original covariance matrix $\pmb S_x$ (with
+eigendecomposition $\pmb S_x = \pmb U_x \pmb D_x \pmb U_x^T$), into a new 
+p-dim vector $\pmb y=\pmb Q \pmb x$ whose covariance would be diagonal. Since $\pmb Q$ is orthogonal,
+it can be seen as preserving all the structure in the data and it is
+simply changing the coordinate system on which the variables are measured.
+Since
+$$\textrm{Var}(\pmb Q \pmb x) = \pmb Q \pmb S_x \pmb Q^T =
+\pmb Q \pmb U_x \pmb D_x \pmb U_x^T \pmb Q^T,$$
+we see that by a choice $\pmb Q = \pmb U_x^T$ we have that 
+$\textrm{Var}(\pmb Q \pmb x) = \pmb D_x$ is diagonal and hence
+the transformed variables have zero covariances.
+Thus, by transforming the variables by the eigenvectors of the
+empirical covariance matrix of $\pmb x$, which is 
+$\widehat{\pmb S}_x = \frac{1}{n-1} \pmb X^T \pmb X$, we will rotate 
+the data into new coordinates
+where different dimensions do not covary at all. This is the PCA
+transformation, and the new variable with the largest variance corresponds
+to the 1st PC etc. (Note that the constant $\frac{1}{n-1}$ does not affect
+the eigenvectors but does affect the eigenvalues multiplicatively.
+Thus, for deriving the PCA transformation, it does not matter whether
+we compute the eigenvectors from $\pmb X^T \pmb X$ or 
+$\frac{1}{n-1} \pmb X^T \pmb X$.)
+
+### PCA in practice
+
+Let's use PCA on our favorite data set `Boston`.
+Let's use both the R's standard function `prcomp()` and check 
+that our eigenvalue decomposition method agrees.
+Note that the help of `prcomp` says that the calculation is done 
+by a singular value
+decomposition of the (centered and possibly scaled) data matrix, 
+not by using `eigen()` on the covariance matrix. 
+
+```{r}
+library(MASS)
+str(Boston) #remind what's in there
+#We will do PCA WITHOUT lstat included.
+keep = c(1:12,14) #keep these columns for PCA 
+outcome = which(!(1:14 %in% keep)) #leave this out from PCA and think as an outcome variable
+#Do PCA with eigendecomposition:
+Boston.scaled = scale(as.matrix(Boston)) #always mean center for PCA. scaling not obligatory
+eig = eigen(1/(nrow(Boston)-1) * t(Boston.scaled[,keep]) %*% Boston.scaled[,keep])
+#Do PCA with prcomp:
+prc = prcomp(Boston[,keep], center = T, scale = T) 
+str(prc) 
+#square roots of the eigenvalues = SD of PCs
+cbind(prc$sdev[1:3],sqrt(eig$values[1:3]))
+#matrix of PC loadings in columns = eigenvectors in columns
+cbind(prc$rotation[1:3,1], eig$vectors[1:3,1])
+#PC scores of sample 5 on PC 3 (note that sign is arbitrary!)
+c(prc$x[5,3], t(eig$vectors[,3]) %*% Boston.scaled[5,keep])
+````
+
+If we have a new Boston area with measured values for these 13
+variables, how would we project it to these 2D plots?
+Let's do projection for area 15 (even though it was already on PC analysis)
+and compare to the correct values.
+
+```{r}
+cbind(as.numeric(predict(prc, newdata = Boston[15,keep])), prc$x[15,]) 
+```
+
+Let's see how large a proportion of total variance PCs cumulatively capture.
+```{r}
+cumsum(prc$sdev^2)/sum(prc$sdev^2) 
+```
+1st component alone explains 46% and first 7 components explain 90%.
+Often the variance explained by components is plotted, and the resulting **scree plot**
+can be used to evaluate (visually) 
+how many components have clearly more weight than the rest.
+```{r, fig.height = 4, fig.width = 5}
+par(mar = c(5,5,1,0.2))
+plot(prc$sdev^2/sum(prc$sdev^2), t = "b", xlab = "PC", ylab = "proportion of total variance")
+```
+
+Let's see how the variables make up the leading PC:
+```{r}
+prc$rotation[,1]
+```
+
+
+Let's visualize first six PCs and color each point according to `lstat` value
+(higher in red, lower in blue).
+```{r, fig.width =9, fig.height = 3}
+cols = rep("blue", nrow(Boston))
+cols[Boston[,outcome] > median(Boston[,outcome])] = "red"
+par(mfrow = c(1,3))
+for(ii in seq(1,6,2)){
+  plot(prc$x[,ii],prc$x[,ii+1], pch = 3, col = cols, cex.lab = 1.5, 
+       xlab = paste0("PC",ii), ylab = paste0("PC",ii+1))}
+```
+
+We see clear structure (at least in 1st and 3rd plots) where scores of PCs seem to associate 
+with `lstat` value, which was not included in the PCA.
+
+
+#### Principal components regression (PCR)
+
+Let's do linear regression of `lstat ~ PC1` and see how it compares to 
+how the individual variables explain `lstat`.
+
+```{r}
+summary(lm(Boston[, outcome] ~ prc$x[,1]))
+#How do the individual variables explain lstat?
+for(ii in keep){
+  print(paste(names(Boston)[ii],":",
+              summary(lm(Boston[, outcome] ~ Boston[,ii]))$adj.r.squared))}
+```
+
+PC 1 explains similarly `lstat` as `medv` alone, and much more 
+than any one variable alone.
+
+When many predictors in a regression model are highly correlated, one approach
+for a robust regression analysis is first to compute the
+leading PCs out of the correlated
+predictors and then do the regression on some of the leading PCs instead. 
+This is called *principal components regression (PCR)*.
+For example, when regressing the outcome variable $y$ on PC1 and PC2,
+the model is 
+\begin{eqnarray*}
+y_i &=& \mu + \textrm{pc}_1(i) \beta_1 + \textrm{pc}_2(i) \beta_2 + \varepsilon\\
+&=& \mu + \beta_1 \sum_{j = 1}^p x_{ij}u_{1j} + \beta_2 \sum_{j = 1}^p x_{ij}u_{2j} + \varepsilon
+\end{eqnarray*}
+Thus, the model has only two coefficients, but still each of the $p$ original predictors $x_j$
+is contributing to the model by $x_{ij}(\beta_1 u_{1j} + \beta_2 u_{2j})$. 
+The idea is that by focusing on leading PCs, we can capture more of the main structure
+of the predictors than with equal number of individual predictors, but we will 
+reduce the variance compared to the standard linear model with $p$ coefficients that
+is prone to overfit when $p$ is high.
+
+The advantage of PCR is that the PCs are uncorrelated with each other, 
+and still capture a large part of the joint information of the original 
+correlated predictors. 
+However, the interpretation of the regression coefficient is not anymore
+given in terms of the original predictors, which is a problem in cases
+where the original predictors had a clear meaning for the analyst, but PCs don't.
+
+#### PCA on samples (rather than on variables)
+
+Let's then use PCA the other way around. 
+We now consider the $p=14$
+variables as the "samples" that have been measured on $n=506$ "variables" which
+are the Boston areas.
+We want to find the 2-dimensional description of the relationships
+between these $p$ variables. Let's first show them with a heatmap.
+
+```{r}
+heatmap(cor(Boston))
+```
+
+It seems that there are two main groups. Let's see what the leading PC says:
+
+```{r, fig.width = 5, fig.height = 5}
+prc = prcomp(t(Boston.scaled))
+plot(prc$x[,1], prc$x[,2], col = "white", xlab = "PC1", ylab = "PC2")
+text(prc$x[,1], prc$x[,2], labels = names(Boston))
+```
+
+So the leading PC also divides the variables into the same two main groups 
+as the correlation matrix. 
+
+In general, the correlation matrix of $p$ variables
+has $p(p-1)/2$ unique elements, 
+whereas their first $k$ PCs have together $p\cdot k$
+elements. Already for $p$ in hundreds there is a considerable difference
+in favor of PCs (with small $k$, say $k\leq 10$) in the amount of data 
+reduction, and this difference 
+becomes crucial in applications with $p$ in thousands.
+
+
+#### See examples of PCA in slides HDS8_slides.pdf
+
+#### Read ISL section 10.2 PCA
+
+ * What does PCA aim to do?
+ 
+ * What are *loadings* and what are *scores*?
+
+ * PCA solution minimizes something and maximizes something else. What are these quantities?
+
+ * Should we scale variables before PCA?
+ 
+
+ 
+#### Tutorial on PCA by Jon Shlens
+https://arxiv.org/pdf/1404.1100.pdf
+
+This is an excellently written tutorial, but unfortunately 
+it uses the rows and columns of data
+matrix the other way as we are using so 
+the data matrix is given as $p \times n$ matrix,
+and $p$ (the number of variables) is called $m$.
+
+
+### Singular value decomposition (SVD)
+
+The SVD is the fundamental decomposition of a matrix 
+$\pmb X$ (of any size $n \times p$) into three components:
+$$ \pmb X = \pmb U \pmb \Sigma \pmb V^T, \textrm{ where }$$
+
+ * $\pmb U$ is an $n \times n$ orthonormal matrix,
+ * $\pmb V$ is a $p \times p$ orthonormal matrix,
+ * $\pmb \Sigma$ is $n \times p$ rectangular 
+ diagonal matrix with elements $\sigma_m \geq 0$ on
+ the diagonal, where $m = \min\{n,p\}$, and
+ * $\pmb X \pmb v_k = \sigma_k \pmb u_k$, for all $k \leq m,$ where $\pmb v_k$ and
+ $\pmb u_k$ are the $k$th columns of $\pmb V$ and $\pmb U$ respectively.
+ 
+We call the columns of $\pmb U$ as the left-singular vectors of $\pmb X$, 
+the columns of $\pmb V$ as the right-singular vectors of $\pmb X$ and values
+$\sigma_k \geq 0$ as the singluar values of $\pmb X$. We order the singular values
+in decreasing order $\sigma_1 \geq \sigma_2 \geq \ldots \geq \sigma_k \geq 0$
+(and we define $\sigma_j=0$ for all $j > m$).
+
+SVD exposes the basis $\pmb V$ for $\mathbb{R}^p$ and
+basis $\pmb U$ for $\mathbb{R}^n$ that are particularly suitable
+to understand the structure of the original matrix $\pmb X$.
+
+#### Interpretation of SVD
+
+**Linear transformation.**
+
+Let's think about what matrix $\pmb X$ does when it is used as a matrix
+of a linear mapping from $\mathbb{R}^p$ to $\mathbb{R}^n$.
+For example, consider how the parameter vector $\widehat{\pmb \beta}$
+turns into predicted values $\widehat{\pmb y}$ through the linear mapping
+$\widehat{\pmb y} = \pmb X \widehat{\pmb \beta}$ defined by the data matrix 
+$\pmb X$.
+
+SVD says that the transformation $\widehat{\pmb \beta} \mapsto \widehat{\pmb y}$
+between the standard bases of $\mathbb{R}^p$ and $\mathbb{R}^n$ 
+happens in 3 basic steps. 
+
+ * Rotate the standard coordinate system of $\mathbb{R}^p$ so that the
+ (orthonormal) columns of $\pmb V$ become the basis vectors, 
+ and express $\widehat{\pmb \beta}$ in 
+ this orthonormal basis, whence the new 
+ coordinates of $\widehat{\pmb \beta}$ 
+ are $\widehat{\pmb \beta}^{(V)} = \pmb V^T \widehat{\pmb \beta}$.
+ * Scale the $p$ elements of $\widehat{\pmb \beta}^{(V)}$ 
+ by matrix $\pmb \Sigma$, i.e., get the scaled coordinates
+ $$ \widehat{\pmb \beta}^{(V,\Sigma)} = \pmb \Sigma \widehat{\pmb \beta}^{(V)} 
+ = \left( \sigma_1 \widehat{\beta_1}^{(V)}, \ldots, \sigma_m \widehat{\beta}_m^{(V)},0,\ldots,0\right)^T,$$
+(Note that if $m = p < n$ then the last $n-p$ elements of the vector are 0. Otherwise $m=n$ and there are no extras zeros at the end of the vector after element $m$.)
+Important is that this scaling happens by non-negative 
+constants $\sigma_k \geq 0$ along each coordinate axis of the basis $\pmb V$
+in the input space $\mathbb{R}^p$ and ends up in the output space $\mathbb{R}^n$.
+ * Rotate the scaled coordinates $\widehat{\pmb \beta}^{(V,\Sigma)}$ from
+ the orthonormal basis $\pmb U$ to the standard basis of $\mathbb{R}^n$ 
+ to get the final 
+ $$\widehat{\pmb y} = \pmb U \widehat{\pmb \beta}^{(V,\Sigma)} =
+ \pmb U \pmb \Sigma \pmb V^T \widehat{\pmb \beta} = \pmb X \widehat{\pmb \beta}.$$
+  Important is that the output space coordinate $\sigma_k \widehat{\beta_k}^{(V)}$
+  along the basis vector $\pmb u_k$ depends
+  only on the input space coordinate along the basis vector $\pmb v_k$ and not
+  on any other direction of the input space.
+
+Thus, SVD tells that the linear transformation defined by **any** matrix $\pmb X$
+is simply a (non-negative) scaling along certain characteristic directions,
+combined with two suitable rotations that reveal those characteristic directions
+with respect to the standard bases of input and output spaces of the matrix.
+
+https://en.wikipedia.org/wiki/Singular-value_decomposition#/media/File:Singular-Value-Decomposition.svg
+
+In the special case where $\pmb X = \pmb X^T$ is a symmetric square matrix,
+SVD coincides with the eigenvalue decomposition and $U=V$ is the 
+basis formed by the eigenvectors of $\pmb X$ and the singular
+values are the eigenvalues of $\pmb X$.
+
+**Low rank approximation to $\pmb X$.**
+
+Let's get back to our main topic of dimension reduction. 
+Since matrix $\pmb \Sigma$ is diagonal in SVD 
+$\pmb X = \pmb U \pmb \Sigma \pmb V^T$, 
+we can use the SVD to decompose $\pmb X$ into a sum of 
+simple $n \times p$ matrices, each of which has rank 1
+$$\pmb X = \sum_{k=1}^m \sigma_k \pmb u_k \, \pmb v_k^T.$$
+This tells how the structure of $\pmb X$ piles up from the 
+individual pieces determined by
+the pairs of left and right singular vectors weighted by the singluar
+values. Each rank 1 matrix $\pmb u_k\, \pmb v_k^T$ can only capture
+one property for (all) rows (encoded by $\pmb v_k$) 
+and one property for (all) columns (encoded by $\pmb u_k$),
+and the components are given in the decreasing order of contribution 
+to the final matrix.
+It can be shown (Eckart-Young theorem) that by truncating 
+this sum after $K$ components leads to 
+the rank $K$ approximation to $\pmb X$ that minimizes 
+the elementwise squared error (Frobenius norm) 
+from $\pmb X$ among all rank $K$ matrices. Thus, by keeping only the
+leading $K$ components of SVD we reduce the amount of information 
+from $np$ elements (original size of $\pmb X$) to $K(n+p+1)$ elements.
+
+A concrete way to visualize the rank $K$ approximations is to consider an
+image as a rectangular matrix and then compare the different 
+approximations to the original one. 
+In particular, notice how the complexity of the image has a large
+effect on how many components are needed to represent it well.
+http://timbaumann.info/svd-image-compression-demo/
+
+#### Connection between SVD and PCA
+
+We determined earlier that PCs were the eigenvectors of
+$\pmb X^T \pmb X$. If we write this crossproduct matrix using the SVD of  
+$\pmb X = \pmb U \pmb \Sigma \pmb V^T$, we have that
+$$\pmb X^T \pmb X = \pmb V \pmb \Sigma^T \pmb U^T \pmb U \pmb \Sigma \pmb V^T
+= \pmb V \pmb \Sigma^T \pmb \Sigma \pmb V^T = \pmb V \pmb D \pmb V^T,$$
+where $n \times n$ diagonal matrix $\pmb D = \pmb \Sigma^T \pmb \Sigma$. 
+Thus, the eigenvectors of $\pmb X^T \pmb X$ can be read from columns of 
+$\pmb V$ and the corresponding eigenvalues are the 
+squares of the singular values, i.e.,  $\lambda_k = \sigma_k^2$.
+Furthermore, the scores of the samples on the PCs are
+$$ \pmb X \pmb V = \pmb U \pmb \Sigma,$$
+and can be formed as linear combinations of the columns of $\pmb U$.
+Hence, by doing the SVD for $\pmb X$ we also get
+both the loadings and the scores of the PCs of the matrix $\pmb X$.
+The function `prcomp` actually uses SVD for making the PCA.
+
+### Computing PCA
+
+What is the quickest way to do PCA?
+
+If $p \leq n$, then
+the eigenvalue decomposition of a $p \times p$ matrix $\pmb X^T \pmb X$
+is a cubic procedure, that is, requires the number of basic operations (such
+as multiplications and additions) that grows as $p^3$ as a function of $p$. 
+We denote this by saying that its (time) complexity is $\mathcal{O}(p^3)$, 
+("of the order of $p^3$"). 
+The eigenvalue decomposition gives us the
+loadings and computation of all the PC scores takes 
+additional $\mathcal{O}(np^2)$ time. 
+Computation of the crossproduct 
+$\pmb X^T \pmb X$ to start with takes yet another $\mathcal{O}(np^2)$ time.
+Thus the whole process is $\mathcal{O}(2np^2 + p^3)$.
+
+If $p>n$, then we will have only $n$ PCs and we can instead consider
+the eigen decompoisition of $n \times n$ matrix
+$$\pmb X \pmb X^T = \pmb U \pmb \Sigma \pmb V^T \pmb V \pmb \Sigma^T \pmb U^T =
+\pmb U \pmb \Sigma \Sigma^T \pmb U^T,$$
+that gives us the scores on PCs (in columns of $\pmb U \pmb \Sigma$)
+and the eigenvalues of each PC (the diagonal of $\Sigma \Sigma^T$).
+From there we can compute the loadings $\pmb V$ from relationship
+$\pmb V \pmb \Sigma^T = \pmb X^T \pmb U$ which is a $\mathcal{O}(pn^2)$
+operation. Computing $\pmb X \pmb X^T$ takes $\mathcal{O}(pn^2)$.
+Thus the whole process is $\mathcal{O}(2pn^2 + n^3)$.
+
+All in all, PCA through an eigen decomposition 
+takes $\mathcal{O}(\min\{(p^3+np^2,n^3+pn^2\})$ time.
+
+The algorithms for SVD have similar theoretical complexity 
+(depending on relationship between n and p). 
+Let's see how they compare in practice.
+```{r, eval=T, warning=F}
+set.seed(67)
+file.name = "rprof.out" #time algorithms
+n = 1000
+ps = c(500, 1000, 2000, 3000, 4000)
+times = matrix(NA, ncol = 2, nrow = length(ps))
+for(ii in 1:length(ps)){
+  p = ps[ii]
+  X = scale(matrix(rnorm(n*p), ncol = p))
+  #prcomp (Using SVD)
+  Rprof(file.name)
+  prc = prcomp(X)
+  Rprof(NULL)
+  times[ii,1] = summaryRprof(file.name)$sampling.time
+  
+  Rprof(file.name)
+  if(n > p){
+  #Use pxp matrix: t(X) %*% X
+    eig = eigen(1/(n-1)*crossprod(X)) #has eig. values and loadings
+    scores = X %*% eig$vectors #compute scores
+  }else{
+    #Use nxn matrix: X %*% t(X)
+    eig = eigen(tcrossprod(X)) #has eig. values and scores
+    loadings = crossprod(X, eig$vectors)%*%diag(1/sqrt(eig$values)) #compute loadings
+  }
+  Rprof(NULL)
+  times[ii,2] = summaryRprof(file.name)$sampling.time
+}   
+plot(times,xlab="prcomp/SVD (in sec)", ylab="eigen (in sec)", t="b", 
+     xlim=c(0,max(times)), ylim=c(-1,max(times)), main=paste0("n=",n,"; p varies"))
+text(times[,1], times[,2]-1.2, labels = ps)
+abline(0,1,lty=2)
+grid()
+```
+
+Seems quite similar for smaller $p$ but seems to
+deviate in favor of the eigendecomposition for larger $p$.
+This could be because as $n=1000$ remains constant, the eigendecomposition
+for matrices with large $p\,(>n)$ has always the time complexity $\mathcal{O}(n^3)$,
+and hence the computing time does not grow that much with $p$ as
+the pre-processing time grows only linearly in $p$.
+
+
+In practice, when both $n$ and $p$ are large, PCA is done
+by finding only a few of the leading components.
+(`prcomp()` can take in a parameter `rank` 
+that specifies the number of components.)
+There are efficient methods that extract the leading components
+one-by-one without ever computing crossproduct matrices or the SVD.
+These methods are based on the idea of power iteration, that is,
+they iterate sequential multiplication of a random vector $z$ 
+by the target square matrix $\pmb A$ to get a sequence 
+$\pmb z, \pmb A \pmb z, \pmb A^2 \pmb z, \ldots$, which
+converges towards the
+leading eigenvector of $\pmb A$ when a suitable normalization 
+is carried out at each step. 
+Let's check that the power iteration works in practice.
+
+```{r}
+set.seed(12)
+n = 100
+p = 10
+X = scale(matrix(rnorm(n*p),ncol=p)) #random matrix
+A = (t(X)%*%X)/(n-1) # A = X^T X, whose 1st eigenv vector we want
+eig = eigen(A)
+eig$values[1:3] #check that 1st is clearly larger than others
+A.eig1 = eig$vector[,1] #this is our target eigenvector
+z = rnorm(p) #a random vector in p-space
+niter = 50 
+res = rep(NA, niter) #distance between 1st eig.vector and power iterated vector
+for(ii in 1:niter){
+  z = z/sqrt(sum(z^2)) #normalize
+  res[ii] = sqrt(sum( (A.eig1-z)^2 )) #distance to target
+  z = A %*% z
+}
+plot(res,t="l", xlab="iteration", ylab="distance from 1st eigenvec of A")
+abline(h=0,lty=2, col="red")
+```
+
+The actual methods are 
+more sophisticated and robust than this simple power iteration 
+and form a very active research area. For example, the PCA algorithms 
+that are currently applied to biobank scale data in human genomics 
+(n and p are both $\sim 10^5$) have not been around for more than two years. 
+See slides for an example analysis of *FastPCA*. Another method is *FlashPCA*.
+
+### Connection between PCA and ridge regression
+Consider the regression problem of estimating $\pmb \beta \in \mathbb{R}^p$ 
+in $\pmb y = \pmb X \pmb \beta + \pmb \varepsilon,$ where
+$\pmb y$ is mean centered and size of $\pmb X$ is $n \times p$.
+
+Let's apply a SVD of $\pmb X = \pmb U \pmb \Sigma \pmb V^T$ to
+the predicted outcome values from the OLS estimate
+$$\widehat{\pmb y}_\textrm{OLS} = \pmb X \widehat{\pmb \beta}_\textrm{OLS} = 
+\pmb X \left( \pmb X^T \pmb X\right)^{-1} \pmb X^T \pmb y=
+\pmb U \pmb \Sigma \pmb V^T 
+\left( \pmb V \pmb \Sigma^T \pmb U^T \pmb U \pmb \Sigma \pmb V^T \right)^{-1} 
+\pmb V \pmb \Sigma^T \pmb U^T \pmb y = \pmb U \pmb U^T \pmb y.
+$$
+We have assumed in this SVD that 
+
+ * $\pmb U$ is an $n \times r$ matrix and spans the column space of $\pmb X$,
+ * $\pmb \Sigma$ is an $r \times r$ diagonal matrix with positive diagonal elements
+ $\sigma_1\geq \ldots \geq \sigma_r>0$
+ * $\pmb V$ is an $r \times r$ matrix that spans the row space of $\pmb X$,
+ * $r\leq n$ is the rank of $\pmb X$. 
+ 
+Thus, if $r<n$, we have discarded those $n-r$ 
+basis vectors of $\mathbb{R}^n$ from $\pmb U$ that correspond to 
+the singular value 0.
+Similarly, if $r<p$, we have discarded those $p-r$ 
+basis vectors of $\mathbb{R}^p$ from $\pmb V$ that correspond to 
+the singular value 0.
+(Had we kept these unnecessary columns in $\pmb U$ and $\pmb V$ to 
+make them square matrices, the above formula would not hold.)
+
+This shows, unsurprisingly, that the OLS predictions are obtained 
+by an orthogonal projection of the outcome variable
+to basis $\pmb U$ that is the column space of $\pmb X$.
+
+Consider then the ridge regression (RR) estimates with the penalty parameter 
+$\lambda.$ The fitted values are
+\begin{eqnarray*}
+\widehat{\pmb y}_\textrm{RR} &=& \pmb X \widehat{\pmb \beta}_\textrm{RR} = 
+\pmb X \left( \pmb X^T \pmb X + \lambda \pmb I \right)^{-1} \pmb X^T \pmb y \\
+&=&
+\pmb U \pmb \Sigma \pmb V^T 
+\left( \pmb V \pmb \Sigma^T \pmb U^T \pmb U \pmb \Sigma \pmb V^T 
++ \lambda \pmb I\right)^{-1} 
+\pmb V \pmb \Sigma^T \pmb U^T \pmb y \\
+&=& \pmb U \pmb \Sigma \pmb V^T \left( \pmb V \left(\pmb \Sigma^2 + \lambda \pmb I\right) \pmb V^T \right)^{-1} 
+\pmb V \pmb \Sigma \pmb U^T \pmb y  \\
+&=& \pmb U \pmb \Sigma  \left(\pmb \Sigma^2 + \lambda \pmb I\right)^{-1} 
+\pmb \Sigma \pmb U^T \pmb y \\
+&=& \pmb U   \left(\pmb \Sigma^{-1} \left(\pmb \Sigma^2 + \lambda \pmb I\right) \pmb \Sigma^{-1} \right)^{-1}  \pmb U^T \pmb y \\
+&=& \pmb U   \left(\pmb I + \lambda \pmb \Sigma^{-2} \right)^{-1}  \pmb U^T \pmb y \\
+&=& \pmb U \pmb \Delta \left(\frac{\sigma_k^2}{\sigma_k^2 + \lambda} \right) \pmb U^T \pmb y,
+\end{eqnarray*}
+where $\pmb \Delta(d_k)$ is the diagonal matrix with sequence $(d_k)_{k=1}^r$ on the
+diagonal.
+
+Thus, for ridge regression prediction, we also project the outcome variable
+to the column space but not orthogonally. Instead, we will shrink (if $\lambda>0$)
+the coordinates along each $\pmb u_k$ direction by the coefficient
+$\frac{\sigma_k^2}{\sigma_k^2 + \lambda}$, which means that the directions
+with smallest singular values will be shrunk the most. These are the directions
+in column space, where the data has the smallest variance. 
+We see that the ridge regression penalty induces relatively stronger
+shrinkage in the directions where the data vary less. This sounds like 
+a good approach if those directions are dominated by noise 
+rather than the true signal.
+The idea is similar to that of PCA: 
+we remove or downweight the directions in which the data vary 
+little and get both dimension reduction and more robust analyses.
+(But we will also lose some of the original information.)
+
+
+#### Read from ISL 6.3 Dimension Reduction 
+ * What is Principal components regression (PCR)?
+ * What are advantages and disadvantages of PCR compared to OLS?
+ * What is Partial Least Squares (PLS)?
+ * What is advantages and disadvantages of PLS compared to OLS?
+ * What is the difference between PCR and PLS?
+ * How do PCR and PLS compare to ridge regression and LASSO?
+
+#### Read from ISL 6.4 Considerations in high dimensions (HDs)
+ * What are the challenges in high dimensional analyses?
+ * Which measures of goodness-of-fit one should / should not use in HDs?
+ * Which are suitable methods for regression in HDs?

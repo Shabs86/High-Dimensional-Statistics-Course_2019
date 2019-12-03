@@ -1,0 +1,363 @@
+---
+title: "HDS Exercise set 2"
+author: "Shabbeer Hassan"
+output:
+  pdf_document: default
+  html_document: default
+theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(29)
+```
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 30px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 22px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 20px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+h4 { /* Header 4 */
+  font-size: 14px;
+  font-family: "Times New Roman", Times, serif;
+  color: Black;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+### Problem 1 -- Solutions
+
+(a)
+```{r echo=T}
+library(qvalue)
+data(hedenfalk)
+
+
+## Histogram of p-values
+hist(hedenfalk$p, prob = T, breaks = 50, xlab = "P-Values")
+curve(dunif(x, 0, 1), 0, 1, add = T, col = "red", lwd = 4)
+```
+
+
+####  Null p-values follow a Uniform(0,1) distribution, which would result in a p-value like the relatively flat at the right tail of the histogram. The proportion of null p-values also appear to be quite large in comparison to non-null values
+
+(b)
+```{r echo=T}
+## Manual estimate 
+pval<- hedenfalk$p
+lambda <- 0.5 
+pi0_man <- sum(pval > lambda)/(length(pval)*lambda)
+
+## Using qvalue package
+qval_obj <- qvalue(p = pval)
+#summary(qval_obj)
+pi0_pkg <- qval_obj$pi0
+
+# Estimates
+pi0_man
+pi0_pkg
+```
+
+(c) 
+```{r echo=T}
+# how many discoveries when determined the significance threshold by 
+# P-value, by Q-value, by BH adjusted P-value or by Bonferroni corrected P-value
+
+pval <- hedenfalk$p
+
+# Threshold seq
+t <- seq(0.01, 0.99, 0.01)
+
+# Alpha 
+Alpha_func <- function(x) {sum(pval < x)}
+Alpha.eval <- sapply(t, Alpha_func)
+
+# BH
+BH_func <- function(x) {sum(p.adjust(pval, method = "BH", n = length(pval)) < x)}
+BH.eval <- sapply(t, BH_func)
+
+# Bonferroni
+Bonf_func <- function(x) {sum(p.adjust(pval, method = "bonferroni", n = length(pval)) < x)}
+Bonf.eval <- sapply(t, Bonf_func)
+
+# Q-value
+Q.eval_func <- function(x) {sum(qvalue(pval)$qvalues < x)}
+Q.eval <- sapply(t, Q.eval_func)
+
+# Combined df
+Eval.df <- as.data.frame(cbind(t, Alpha.eval, BH.eval, Bonf.eval, Q.eval))
+
+# Plot of above eval methods
+library("reshape")
+library("ggplot2")
+Eval.df$t <- as.character(Eval.df$t)
+Eval.df.trans <- melt(Eval.df, id.vars = "t")
+ggplot(Eval.df.trans, aes(x = t, y = log10(value), 
+                          group = variable, color = variable)) + 
+  geom_point() + 
+  geom_line() + 
+  xlab("t") +
+  ylab("Log(sum of discoveries)") +
+  #scale_x_discrete(breaks = seq(0.01, 0.99, by = 0.1), limits=c(0.01, 0.99)) +
+  #theme with white background
+  theme_bw() +
+  #eliminates background, gridlines, and chart border
+  theme(
+    plot.background = element_blank()
+    ,panel.grid.major = element_blank()
+    ,panel.grid.minor = element_blank()
+  ) +
+  #draws x and y axis line
+  theme(axis.line = element_line(color = 'black')) 
+```
+
+#### Its interesting to note that a constant alpha is the most liberal method while as expected Bonferoni is the most strict one. The other thing to note here is that as the threshold increases the sum of discoveries also increase, though Qvalue becomes very liberal at those higher values
+
+(d) 
+```{r echo=T}
+
+# Plotiing qval
+pval <- hedenfalk$p
+q <- qvalue(pval)
+plot(q)
+
+# False discoveries
+# How many discoveries you would make if you allowed 20 false discoveries? 
+fdr = 20/length(pval)
+qval_fdr_1 <- qvalue(pval, fdr.level = fdr)
+sum(qval_fdr_1$significant == TRUE)
+
+# What about if you allowed 10% of false discoveries among all discoveries?
+qval_fdr_2 <- qvalue(pval, fdr.level = 0.1)
+sum(qval_fdr_2$significant == TRUE)
+```
+
+
+### Problem 2 -- Solutions
+```{r echo=T}
+
+# Generate 5000 p-values
+m = 1000
+pval <- c(rbeta(m, 1, 100), runif(p-m, 0, 1))
+
+# BH 
+BH <- p.adjust(pval, method = "BH", n = length(pval))
+
+# Qvalue
+Qval <- qvalue(pval)
+pi0 <- Qval$pi0  # overall proportion of true null hypotheses
+
+# Linear Reg
+lm.fit <- lm(Qval$qvalues ~ BH)
+lm.fit$coefficients
+```
+
+
+#### On comparison of slope to the pi0 estimate from qval we see that they are similar to each other. 
+
+
+### Problem 3 -- Solutions
+
+(a)
+```{r echo=T}
+
+# Generate 5000 p-values
+m = 500
+p = 5000
+pval <- c(rbeta(m, b.1, b.0), runif(p-m, 0, 1))
+
+b.1 = 1
+b.0 = 1
+pval <- c(rbeta(m, b.1, b.0), runif(p-m, 0, 1))
+hist(pval, xlab = "pval", prob = TRUE)
+lines(density(pval))
+
+
+b.1 = 1
+b.0 = 100
+pval <- c(rbeta(m, b.1, b.0), runif(p-m, 0, 1))
+hist(pval, xlab = "pval", prob = TRUE)
+lines(density(pval))
+
+
+b.1 = 1
+b.0 = 500
+pval <- c(rbeta(m, b.1, b.0), runif(p-m, 0, 1))
+hist(pval, xlab = "pval", prob = TRUE)
+lines(density(pval))
+```
+
+
+(b)
+```{r echo=T}
+
+# Generate R = 500 replicates
+R = 500
+qval_fun <- function(x) {qvalue(p = x)}
+
+#####
+
+b.1 = 1
+b.0 = 1
+
+# Generate replicated pvalues and apply qval function over the columns
+pval_new <- replicate(R, c(rbeta(m, b.1, b.0), runif(p-m, 0, 1)))
+qval <- lapply(1:ncol(pval_new), function(x) qvalue(pval[,x]))
+
+# Extract variables/elements from the above list
+qval_rep <- lapply(qval, `[`, c('qvalues'))
+qval_rep_df <- data.frame(matrix(unlist(qval_rep), nrow=length(qval_rep), byrow=T))
+
+pi0_rep <- lapply(qval, `[`, c('pi0'))
+pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
+names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
+
+
+alpha=0.1
+
+# Discoveries
+D_func <- function(x) {(sum(qval_rep_df[,x] < alpha))}
+Disc <- lapply(1:ncol(pval_new), D_func)
+Disc_rep_df <- data.frame(matrix(unlist(Disc), nrow=length(Disc), byrow=T))
+colnames(Disc_rep_df) <- "Discoveries"
+
+# FD
+FD_func <- function(x) {sum(qval_rep_df[,(m + 1):p] < alpha)}
+FD <- lapply(1:ncol(pval_new), FD_func)
+FD_rep_df <- data.frame(matrix(unlist(FD), nrow=length(FD), byrow=T))
+colnames(FD_rep_df) <- "False Discoveries" 
+
+# Histograms 
+pi_mean <- mean(pi0_rep_df$pi0)
+hist(pi0_rep_df$pi0, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+
+Disc_mean <- mean(Disc_rep_df$Discoveries)
+hist(Disc_rep_df$Discoveries, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+
+####
+
+b.1 = 1
+b.0 = 100
+
+# Generate replicated pvalues and apply qval function over the columns
+pval_new <- replicate(R, c(rbeta(m, b.1, b.0), runif(p-m, 0, 1)))
+qval <- lapply(1:ncol(pval_new), function(x) qvalue(pval[,x]))
+
+# Extract variables/elements from the above list
+qval_rep <- lapply(qval, `[`, c('qvalues'))
+qval_rep_df <- data.frame(matrix(unlist(qval_rep), nrow=length(qval_rep), byrow=T))
+
+pi0_rep <- lapply(qval, `[`, c('pi0'))
+pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
+names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
+
+alpha=0.1
+
+# Discoveries
+D_func <- function(x) {(sum(qval_rep_df[,x] < alpha))}
+Disc <- lapply(1:ncol(pval_new), D_func)
+Disc_rep_df <- data.frame(matrix(unlist(Disc), nrow=length(Disc), byrow=T))
+colnames(Disc_rep_df) <- "Discoveries"
+
+# FD
+FD_func <- function(x) {sum(qval_rep_df[,(m + 1):p] < alpha)}
+FD <- lapply(1:ncol(pval_new), FD_func)
+FD_rep_df <- data.frame(matrix(unlist(FD), nrow=length(FD), byrow=T))
+colnames(FD_rep_df) <- "False Discoveries" 
+
+# Histograms 
+pi_mean <- mean(pi0_rep_df$pi0)
+hist(pi0_rep_df$pi0, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+
+Disc_mean <- mean(Disc_rep_df$Discoveries)
+hist(Disc_rep_df$Discoveries, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+
+####
+
+b.1 = 1
+b.0 = 500
+# Generate replicated pvalues and apply qval function over the columns
+pval_new <- replicate(R, c(rbeta(m, b.1, b.0), runif(p-m, 0, 1)))
+qval <- lapply(1:ncol(pval_new), function(x) qvalue(pval[,x]))
+
+# Extract variables/elements from the above list
+qval_rep <- lapply(qval, `[`, c('qvalues'))
+qval_rep_df <- data.frame(matrix(unlist(qval_rep), nrow=length(qval_rep), byrow=T))
+
+pi0_rep <- lapply(qval, `[`, c('pi0'))
+pi0_rep_df <- data.frame(matrix(unlist(pi0_rep), nrow=length(pi0_rep), byrow=T))
+names(pi0_rep_df) <- names(pi0_rep[[which(lengths(pi0_rep)>0)[1]]])
+
+alpha=0.1
+
+# Discoveries
+D_func <- function(x) {(sum(qval_rep_df[,x] < alpha))}
+Disc <- lapply(1:ncol(pval_new), D_func)
+Disc_rep_df <- data.frame(matrix(unlist(Disc), nrow=length(Disc), byrow=T))
+colnames(Disc_rep_df) <- "Discoveries"
+
+# FD
+FD_func <- function(x) {sum(qval_rep_df[,(m + 1):p] < alpha)}
+FD <- lapply(1:ncol(pval_new), FD_func)
+FD_rep_df <- data.frame(matrix(unlist(FD), nrow=length(FD), byrow=T))
+colnames(FD_rep_df) <- "False Discoveries" 
+
+# Histograms 
+pi_mean <- mean(pi0_rep_df$pi0)
+hist(pi0_rep_df$pi0, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+
+Disc_mean <- mean(Disc_rep_df$Discoveries)
+hist(Disc_rep_df$Discoveries, xlab = "Replications", main = "pi0", prob = T)
+abline(v = pi_mean, col = "blue", lwd = 2)
+
+```
+
+
+## Junk Code
+#req_var <- lapply(qval, `[`, c('qvalues', 'pi0'))
+#req_var_df <- data.frame(matrix(unlist(req_var), ncol = max(lengths(req_var)), byrow = TRUE))
+#names(req_var_df) <- names(req_var[[which(lengths(req_var)>0)[1]]])
+#req_var_df_new<-as.data.frame(matrix(unlist(req_var), nrow=length(unlist(req_var[1]))))
+#library(doFuture)
+#registerDoFuture()
+#plan(multiprocess)
+#X <- 1:ncol(pval)
+#qval <- foreach(x = X) %dopar% {qvalue(pval)}
+#qval_func <- function(x) {qvalue(pval[,x])}
+#qval <- sapply(pval_new, qval_func)
